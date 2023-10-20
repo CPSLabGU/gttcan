@@ -37,7 +37,7 @@ As each entry in the schedule is only 2 bytes, a 64 bit value can be used to pac
 
 ## Messages
 
-## Reference message
+### Reference message
 
 A reference message is a CAN frame sent with an ID of 1-7 (the first 7 ids are reserved for time masters) with the most significant bit of the 8-byte data payload set to 1. Another bit is kept as a reserved bit, followed by 62 timing bits. 
 
