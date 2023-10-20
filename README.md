@@ -52,7 +52,7 @@ S = Start of schedule (0/1)
 t = timevalue (62 bit)
 ```
 
-If a time master wishes to transmit other information (not reference messages), the MSB must be set to 0. leaving 63 bits for payload. This does limit the masters transmit range to 0x0 - 0x7FFFFFFFFFFFFFFF. Alternatively, the master may use a different  ID for regular (non Reference) messages. Whilst reference messages should normally be transmitted in the corresponding timeslot in the schedule, it is important that all nodes immediately update their local time upon receiving a reference message at ANY time.
+If a time master wishes to transmit other information (not reference messages), the MSB must be set to 0, leaving 63 bits for payload. This does limit the masters transmit range to 0x0 - 0x7FFFFFFFFFFFFFFF. Alternatively, the master may use a different  ID for regular (non Reference) messages. Whilst reference messages should normally be transmitted in the corresponding timeslot in the schedule, it is important that all nodes immediately update their local time upon receiving a reference message at ANY time.
 
 #### Data Message
 
