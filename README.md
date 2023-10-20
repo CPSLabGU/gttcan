@@ -1,4 +1,4 @@
-# GTTCan
+# G-TTCan
 A time-triggered CAN Bus communication protocol loosely based on TTCan
 
 Each node on the network will need to be able to communicate at 1mbps on the CAN Bus.
