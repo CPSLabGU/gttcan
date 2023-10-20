@@ -7,13 +7,13 @@ The NTU (Network Time Unit) is 0.1us. Each device should maintain its own local 
 ## Schedule
 The schedule is the heart of the protocol. The exact implementation can be decided by the user, but the following information is required.
 
-*ScheduleLength* - How many entries in one round of the schedule. Recommended <128.
+*Schedule Length* - How many entries in one round of the schedule. Recommended <128.
 
-*EntryTime* - How long (in NTU) each entry in the schedule is alloted. Must be greater than the tranmission time for a single can frame (in NTU).
+*Entry Time* - How long (in NTU) each entry in the schedule is alloted. Must be greater than the tranmission time for a single can frame (in NTU).
 
-*ScheduleData* - The schedule data itself.
+*Schedule Data* - The schedule data itself.
 
-The schedule can be stored as a series of entries (of length *ScheduleLength*). Each entry contains an ID and a data type. For a typical use case, each of these can be encoded as a byte. There are 4 types of entries in the schedule:
+The schedule can be stored as a series of entries (of length *Schedule Length*). Each entry contains an ID and a data type. For a typical use case, each of these can be encoded as a byte. There are 4 types of entries in the schedule:
 
 #### Reference message slot
 ID: 1-7 (depending on which time master is transmitting)\
@@ -65,3 +65,10 @@ On occasion, it may be desirable to ask a node to transmit a value it does not h
 
 > Gervase: Unlike other exclusive message slots, the type of data being transmitted in this message is not contained in the schedule. Do we want to include the datafield byte in the ID field (given we have many unused bits). We are only using 8 bit IDs, but have 28 bits available, so we could easily use the next 8 bits in the ID field to specify a data byte. It would mean arbitration would be decided by data field and not by id.
 
+## Nodes
+
+Each node on the G-TTCan network will need the following information:
+
+Node ID(s): The ID(s) to be used for this node. Node ID's 1-7 are reserved for time masters. It is *possible* for a node to identify/respond as 2 IDs (schizophrenic node) however this may introduce unexpected complexity or behaviour and should be carefully considered.
+
+Current Time: The current network time (in units of 0.1 us). This should be syncrhonised when receiving a [Reference Message}(reference-message) and maintained at best-effort resolution by the node.
