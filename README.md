@@ -7,9 +7,9 @@ The NTU (Network Time Unit) is 0.1us. Each device should maintain its own local 
 ## Schedule
 The schedule is the heart of the protocol. The exact implementation can be decided by the user, but the following information is required.
 
-*ScheduleLength* - How many entries in one round of the schedule. Recommended <128.\
+*ScheduleLength* - How many entries in one round of the schedule. Recommended <128.
 
-*EntryTime* - How long (in NTU) each entry in the schedule takes. Must be greater than the tranmission time for a single can frame (in NTU).\
+*EntryTime* - How long (in NTU) each entry in the schedule takes. Must be greater than the tranmission time for a single can frame (in NTU).
 
 *ScheduleData* - The schedule data itself.
 
