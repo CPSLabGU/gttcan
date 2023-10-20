@@ -22,7 +22,7 @@ If a time master wishes to transmit other information (not reference frames), th
 The schedule is the heart of the protocol. The exact implementation can be decided by the user, but the following information is required.
 
 *ScheduleLength* - How many entries in one round of the schedule. Int value (recommended <128)\
-*WindowTime* - How long (in NTU) each entry in the schedule takes. Must be greater than the tranmission time for a single can frame (in NTU).\
+*WindowTime* - How long (in NTU) each entry in the schedule takes. Must be greater than the tranmission time for a single can frame (in NTU).
 
 The schedule can then stored as a series of entries (of length *ScheduleLength*). Each entry contains an ID and a data type. For a typical use case, each of these can be encoded as a byte. There are 4 types of entries in the schedule:
 
