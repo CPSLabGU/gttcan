@@ -9,7 +9,7 @@ The schedule is the heart of the protocol. The exact implementation can be decid
 
 *ScheduleLength* - How many entries in one round of the schedule. Recommended <128.
 
-*EntryTime* - How long (in NTU) each entry in the schedule takes. Must be greater than the tranmission time for a single can frame (in NTU).
+*EntryTime* - How long (in NTU) each entry in the schedule is alloted. Must be greater than the tranmission time for a single can frame (in NTU).
 
 *ScheduleData* - The schedule data itself.
 
