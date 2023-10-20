@@ -8,7 +8,7 @@ The NTU (Network Time Unit) is 0.1us. Each device should maintain its own local 
 
 A reference frame is a CAN frame sent with an ID of 1-7 (the first 7 ids are reserved for time masters) with the most significant bit of the 8-byte data payload set to 1. Another bit is kept as a reserved bit, followed by 62 timing bits. 
 
-###### 8 byte (64 bit) payload for reference frame
+#### 8 byte (64 bit) payload for reference frame
 ```
 Frtttttt tttttttt tttttttt tttttttt
 F = Reference Frame (0/1)
