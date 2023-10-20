@@ -69,6 +69,13 @@ On occasion, it may be desirable to ask a node to transmit a value it does not h
 
 Each node on the G-TTCan network will need the following information:
 
-Node ID(s): The ID(s) to be used for this node. Node ID's 1-7 are reserved for time masters. It is *possible* for a node to identify/respond as 2 IDs (schizophrenic node) however this may introduce unexpected complexity or behaviour and should be carefully considered.
+*Node ID(s)*: The ID(s) to be used for this node. Node ID's 1-7 are reserved for time masters. It is *possible* for a node to identify/respond as 2 IDs (schizophrenic node) however this may introduce unexpected complexity or behaviour and should be carefully considered.
 
-Current Time: The current network time (in units of 0.1 us). This should be syncrhonised when receiving a [Reference Message}(reference-message) and maintained at best-effort resolution by the node.
+*Current Time*: The current network time (in units of 0.1 us). This should be syncrhonised when receiving a [Reference Message](reference-message) and maintained at best-effort resolution by the node.
+
+### Masters
+
+Node's with an ID of 1 - 7 are potential master nodes.
+
+Primary Master (ID: 1): This node should 
+
