@@ -6,7 +6,17 @@ The NUoT (Network Unit of Time) is 0.1us. Each device should maintain its own lo
 
 ##Reference Frame
 
-A reference frame is a CAN frame from a node with an ID of 0-7 (the first 7 ids are reserved for time masters) with the most significant bit of the 8-byte data payload set to 1. If a time master wishes to send other information (not reference frames), the MSB must be set to 0.
+A reference frame is a CAN frame from a node with an ID of 0-7 (the first 7 ids are reserved for time masters) with the most significant bit of the 8-byte data payload set to 1. Another bit is kept as a reserved bit, followed by 62 timing bits. 
 
+8 byte (64 bit) payload for reference frame
+> Sr_tttttt_ _tttttttt_ _tttttttt_ _tttttttt_
+> R = Reference Frame
+> r = reserved
+> t = timevalue (62 bit)
+> 
+If a time master wishes to transmit other information (not reference frames), the MSB must be set to 0. As the next bit is reservedThis does limit the masters transmit range to 0x0 - 0xEFFFFFFFFFFFFFFF
+Whilst reference frames should be transmitted in the corresponding timeslot in the schedule, it is important that all nodes respond to the reference frame and immediately update their time
+##Schedule
+Tha main part of 
 
 
