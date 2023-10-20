@@ -59,7 +59,7 @@ This is a standard message. As the schedule slot dictates which node and what da
 
 ### Request message
 
-On occaision, it may be desirable to ask a node to transmit a value it does not have a scheduled slot for. Request messages can be used to ask a node to transmit a value in the next available arbitration slot. If the node loses arbitration, it should try again in the next arbitration slot.
+On occasion, it may be desirable to ask a node to transmit a value it does not have a scheduled slot for. Request messages can be used to ask a node to transmit a value in the next available arbitration slot. If the node loses arbitration, it should try again in the next arbitration slot.
 
 > Gervase: Unlike other exclusive message slots, the type of data being transmitted in this message is not contained in the schedule. Do we want to include the datafield byte in the ID field (given we have many unused bits). We are only using 8 bit IDs, but have 28 bits available, so we could easily use the next 8 bits in the ID field to specify a data byte. It would mean arbitration would be decided by data field and not by id.
 
