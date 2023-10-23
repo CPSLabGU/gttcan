@@ -28,7 +28,7 @@ This is the most common entry in the schedule. The Data value is application spe
 #### Arbitration message slot
 ID: 255\
 Data: 255\
-This is a "generic" message slot that allows for ad-hoc or on-request messages to be sent by nodes. In the event that multiple nodes wish to transmit an ad-hoc message, CANBus arbitration will determine which node can transmit in this window.
+This is a "generic" message slot that allows for ad-hoc or on-request messages to be sent by nodes. In the event that multiple nodes wish to transmit an ad-hoc message, CANBus arbitration will determine which node can transmit in this window. IF a node loses arbitration, it should attempt to send its [Response Message](response-message) again in the next arbitration message slot.
 
 #### Free Slot
 ID: 0\
@@ -61,14 +61,15 @@ This is a standard message. As the schedule slot dictates which node and what da
 
 #### Request message
 
-On occasion, it may be desirable to ask a node to transmit a value it does not have a scheduled slot for. Request messages can be used to ask a node to transmit a value in the next available arbitration slot. If the node loses arbitration, it should try again in the next arbitration slot.
+On occasion, it may be desirable to ask a node to transmit a value it does not have a scheduled slot for. Request messages can be used to ask a node to transmit a value in the next available arbitration slot using a [Response Message](response-message). If the node loses arbitration, it should try again in the next arbitration slot.
 
-> Gervase: Unlike other exclusive message slots, the type of data being transmitted in this message is not contained in the schedule. Do we want to include the datafield byte in the ID field (given we have many unused bits). We are only using 8 bit IDs, but have 28 bits available, so we could easily use the next 8 bits in the ID field to specify a data byte. It would mean arbitration would be decided by data field and not by id.
+> Gervase: Should we indicate that this is a request message by using the id bits. We can specify our own CAN_ID format (ddddddddRiiiiiiii) where d is the data field byte in a response message, R (0/1) indicates this is a Request message, and i is the normal node ID.
 
 #### Response message
 
-This is a message for a nodes response to a [Request Message](request-message). It is the same as a Data message, however the Data field byte will not exist in the schedule, so needs to be transmitted as part of the Can Frame ID. In order for this to be possible, extended Can Frames must be used, allowing up to 29bits to be transmitted in the Can Frame ID.
+This is a message for a nodes response to a [Request Message](request-message). It is the same as a Data message, however the Data field byte will not exist in the schedule, so needs to be transmitted as part of the Can Frame ID. In order for this to be possible, extended CAN frames must be used, allowing up to 29bits to be transmitted in the CAN Frame ID.
 
+> Gervase: Unlike other exclusive message slots, the type of data being transmitted in this message is not contained in the schedule. Do we want to include the datafield byte in the ID field (given we have many unused bits). We are only using 8 bit IDs, but have 28 bits available, so we could easily use the next 8 bits in the ID field to specify a data byte. It would mean arbitration would be decided by data field and not by id.
 ## Nodes
 
 Each node on the G-TTCan network will need the following information:
