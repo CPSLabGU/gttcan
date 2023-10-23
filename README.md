@@ -22,12 +22,12 @@ A slot for Reference messages to be sent.
 
 #### Exclusive message slot
 ID: 1-254 (ID of Node that should transmit in this slot)\
-Data: 1-255. \
+Data: 1-254. \
 This is the most common entry in the schedule. The Data value is application specific, but allows for nodes to transmit specific information in a specific schedule entry (and thus one node may appear multiple times in the schedule, but with different data values). If all nodes share a common data structure (similar to an Object Dictionary in CANOpen), this number could be an index into that data structure. This can also allow all nodes to act as consumers of the messages as they know which node transmitted and what entry should be updated.
 
 #### Arbitration message slot
 ID: 255\
-Data: 0\
+Data: 255\
 This is a "generic" message slot that allows for ad-hoc or on-request messages to be sent by nodes. In the event that multiple nodes wish to transmit an ad-hoc message, CANBus arbitration will determine which node can transmit in this window.
 
 #### Free Slot
