@@ -2,7 +2,7 @@
 A time-triggered CAN Bus communication protocol loosely based on TTCan
 
 Each node on the network will need to be able to communicate at 1mbps on the CAN Bus.
-The NTU (Network Time Unit) is 0.1us. Each device should maintain its own local time at best-effort resolution. No device on the network should start transmitting until it has received a start of schedule reference frame to make sure it is synchronised with the other devices.
+The NTU (Network Time Unit) is 0.1us. Each device should maintain its own local time at best-effort resolution. No device on the network should start transmitting until it has received a start of schedule [Reference Message](reference-message) to make sure it is synchronised with the other devices.
 
 ## Schedule
 The schedule is the heart of the protocol. The exact implementation can be decided by the user, but the following information is required.
