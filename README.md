@@ -9,7 +9,7 @@ The schedule is the heart of the protocol. The exact implementation can be decid
 
 *Schedule Length* - How many entries in one round of the schedule. Recommended <128.
 
-*Entry Time* - How long (in NTU) each entry in the schedule is alloted. Must be greater than the tranmission time for a single can frame (in NTU).
+*Entry Duration* - How long (in NTU) each entry in the schedule is alloted. Must be greater than the tranmission time for a single can frame (in NTU).
 
 *Schedule Data* - The schedule data itself.
 
@@ -28,14 +28,14 @@ This is the most common entry in the schedule. The Data value is application spe
 #### Arbitration message slot
 ID: 255\
 Data: 255\
-This is a "generic" message slot that allows for ad-hoc or on-request messages to be sent by nodes. In the event that multiple nodes wish to transmit an ad-hoc message, CANBus arbitration will determine which node can transmit in this window. IF a node loses arbitration, it should attempt to send its [Response Message](response-message) again in the next arbitration message slot.
+This is a "generic" message slot that allows for ad-hoc or on-request messages to be sent by nodes. In the event that multiple nodes wish to transmit an ad-hoc message, CANBus arbitration will determine which node can transmit in this window. IF a node loses arbitration, it can attempt to send its [Arbitration Message](arbitration-message) again in the next arbitration message slot.
 
 #### Free Slot
 ID: 0\
 Data: 0\
 This is an empty entry in the schedule that allows for the network to be expanded by adding Exclusive/Arbitration messages
 
-As each entry in the schedule is only 2 bytes, a 64 bit value can be used to pack 4 schedule entries, allowing for a fairly large schedule to be stored in minimal memory. If more entries/nodes are required, there is nothing stopping the id and data fields to be expanded to 2 or 4 bytes each. The schedule would simply take more memory to store.
+As each entry in the schedule is only 2 bytes, a 64 bit value can be used to pack 4 schedule entries, allowing for a fairly large schedule to be stored in minimal memory. If more entries/nodes are required, there is nothing stopping the id and data fields from being expanded, however as the ID and the Data field are sent in the CAN Frame ID bits, they are limited (combined) to 29 bits.
 
 
 ## Messages
@@ -54,22 +54,17 @@ t = timevalue (62 bit)
 
 If a time master wishes to transmit other information (not reference messages), the MSB must be set to 0, leaving 63 bits for payload. This does limit the masters transmit range to 0x0 - 0x7FFFFFFFFFFFFFFF. Alternatively, the master may use a different  ID for regular (non Reference) messages. Whilst reference messages should normally be transmitted in the corresponding timeslot in the schedule, it is important that all nodes immediately update their local time upon receiving a reference message at ANY time.
 
-#### Data Message
+#### Exclusive Message
 
-This is a standard message. As the schedule slot dictates which node and what data will be sent, the full 8 bytes is available for data tranmission in this slot.
+This is a standard message. Although the schedule slot dictates which node and what data will be sent, the Data field should still be encoded in the least-significant bits in the Can Frame ID
 
 
-#### Request message
-
-On occasion, it may be desirable to ask a node to transmit a value it does not have a scheduled slot for. Request messages can be used to ask a node to transmit a value in the next available arbitration slot using a [Response Message](response-message). If the node loses arbitration, it should try again in the next arbitration slot.
-
-> Gervase: Should we indicate that this is a request message by using the id bits. We can specify our own CAN_ID format (ddddddddRiiiiiiii) where d is the data field byte in a response message, R (0/1) indicates this is a Request message, and i is the normal node ID.
-
-#### Response message
+#### Arbitration message
 
 This is a message for a nodes response to a [Request Message](request-message). It is the same as a Data message, however the Data field byte will not exist in the schedule, so needs to be transmitted as part of the Can Frame ID. In order for this to be possible, extended CAN frames must be used, allowing up to 29bits to be transmitted in the CAN Frame ID.
 
 > Gervase: Unlike other exclusive message slots, the type of data being transmitted in this message is not contained in the schedule. Do we want to include the datafield byte in the ID field (given we have many unused bits). We are only using 8 bit IDs, but have 28 bits available, so we could easily use the next 8 bits in the ID field to specify a data byte. It would mean arbitration would be decided by data field and not by id.
+
 ## Nodes
 
 Each node on the G-TTCan network will need the following information:
