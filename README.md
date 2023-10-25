@@ -44,6 +44,11 @@ As each entry in the schedule is only 2 bytes, a 64 bit value can be used to pac
 
 A reference message is a CAN frame sent by a node with an ID of 1-7 (the first 7 ids are reserved for time masters) with the most significant bit of the 8-byte data payload set to 1. The next bit is used to indicate that this reference frame is the first frame in the schedule. This allows for the schedule to contain multiple reference messages for tighter time synchronisation. This is followed by 62 timing bits. 
 
+##### 29 bit ID for CAN Frame Header - Reference Message
+```
+0000000000000iiiiiiii00000000 (recommended)
+i = Node ID (8 bit) - values 1-7
+```
 ##### 8 byte (64 bit) data payload for reference messages
 ```
 FStttttt tttttttt tttttttt tttttttt
@@ -58,6 +63,12 @@ If a time master wishes to transmit other information (not reference messages), 
 
 This is a standard message. Although the schedule slot dictates which node and what data will be sent, the Data field should still be encoded in the least-significant bits in the Can Frame ID
 
+##### 29 bit ID for CAN Frame Header
+```
+0000000000000iiiiiiiidddddddd (recommended)
+i = Node ID (8 bit) - values 1-254
+d = Data OD (8 bit) - value 1-254
+```
 
 #### Arbitration message
 
