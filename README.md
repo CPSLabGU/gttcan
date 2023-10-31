@@ -20,8 +20,8 @@ The schedule is the heart of the protocol. The exact implementation can be decid
 The schedule can be stored as a series of entries (of length *Schedule Length*). Each entry contains a node ID and a data ID. For a typical use case, each of these can be encoded as a byte. There are 4 types of entries in the schedule:
 
 #### Reference message slot
-ID: 1-7 (depending on which time master is transmitting)\
-Data: 0\
+Node ID: 1-7 (depending on which time master is transmitting)\
+Data ID: 0\
 A slot for Reference messages to be sent.
 
 #### Exclusive message slot
