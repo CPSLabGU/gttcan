@@ -63,19 +63,18 @@ For an 8 bit Node ID and a 16bit data slot ID, the CAN Frame ID value would look
 
 #### Reference message
 
-A reference message is a CAN frame sent by a node with an ID of 1-7 (the first 7 ids are reserved for time masters) with the most significant bit of the 8-byte data payload set to 1. The next bit is used to indicate that this reference frame is the first frame in the schedule. This allows for the schedule to contain multiple reference messages for tighter time synchronisation. This is followed by 62 timing bits. 
+A reference message is a CAN frame sent by a node with an ID of 1-7 (the first 7 ids are reserved for time masters) with a data ID of 0. The first bit is used to indicate that this reference frame is the first frame in the schedule. This allows for the schedule to contain multiple reference messages for tighter time synchronisation. This is followed by 62 timing bits. 
 
 
 ##### 8 byte (64 bit) data payload for reference messages
 ```
-FStttttt tttttttt tttttttt tttttttt
-F = Reference Frame (0/1)
+SRtttttt tttttttt tttttttt tttttttt
 S = Start of schedule (0/1)
+R = reserved
 t = timevalue (62 bit)
 ```
 
-If a time master wishes to transmit other information (not reference messages), the MSB must be set to 0, leaving 63 bits for payload. This does limit the masters transmit range to 0x0 - 0x7FFFFFFFFFFFFFFF. Alternatively, the master may use a different ID for regular (non Reference) messages. Whilst reference messages should normally be transmitted in the corresponding timeslot in the schedule, it is important that all nodes immediately update their local time upon receiving a reference message at ANY time.
-
+<!--
 #### Exclusive Message
 
 This is a standard message. Although the schedule slot dictates which node and what data will be sent, the Data ID value should still be encoded in the least-significant bits in the Can Frame ID. All 8 data bytes are available for data transmission.
@@ -83,6 +82,7 @@ This is a standard message. Although the schedule slot dictates which node and w
 #### Arbitration message
 
 This is a message slot for any node to send unscheduled messages in. It is the same as a Data message, however the transmitting node will need to deal with a potential loss of arbitration and attempt to send the message again in the next arbitration slot.
+-->
 
 ## Nodes
 
