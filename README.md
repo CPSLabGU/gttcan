@@ -5,9 +5,9 @@ Each node on the network will need to be able to communicate at 1mbps on the CAN
 The NTU (Network Time Unit) is 0.1us. Each device should maintain its own local time at best-effort resolution. No device on the network should start transmitting until it has received a start of schedule [Reference Message](reference-message) to make sure it is synchronised with the other devices.
 
 ## Schedule
-The schedule is the heart of the protocol. The exact implementation can be decided by the user, but the following information is required.
+The schedule is the basis of the protocol. The exact implementation can be decided by the user, but the following information is required.
 
-*Schedule Length* - How many entries in one round of the schedule. Recommended <128.
+*Schedule Length* - How many entries in one round of the schedule.
 
 *Entry Duration* - How long (in NTU) each entry in the schedule is alloted. Must be greater than the tranmission time for a single can frame (in NTU).
 
@@ -15,9 +15,9 @@ The schedule is the heart of the protocol. The exact implementation can be decid
 
 *NUM_DATAID_BITS* - The number of bits used for Data Slot ID's.
 
-*Schedule Data* - The schedule data itself.
+*Schedule Data* - The schedule data itself. This does not need to be stored on each node, or anywhere even, however the information from the schedule must be used to generate each node's *local schedule*. In practice, it may be desirable for every node to have the full schedule.
 
-The schedule can be stored as a series of entries (of length *Schedule Length*). Each entry contains a node ID and a data ID. For a typical use case, each of these can be encoded as a byte. There are 4 types of entries in the schedule:
+The schedule can be stored as a series of entries (of length *Schedule Length*). Each entry contains a node ID and a data ID. For a typical use case, each of these can be encoded as a byte, though for larger networks/data structures, these could be encoded as 2 bytes each. There are 4 types of entries in the schedule:
 
 #### Reference message slot
 Node ID: 1-7 (depending on which time master is transmitting)\
@@ -74,11 +74,11 @@ R = reserved
 t = timevalue (62 bit)
 ```
 
+
+#### Standard Message
+
+A standard message has the full 8 bytes available for data transmission. Although the schedule slot dictates which node and what data will be sent, the Data ID value should still be encoded in the least-significant bits in the Can Frame ID. 
 <!--
-#### Exclusive Message
-
-This is a standard message. Although the schedule slot dictates which node and what data will be sent, the Data ID value should still be encoded in the least-significant bits in the Can Frame ID. All 8 data bytes are available for data transmission.
-
 #### Arbitration message
 
 This is a message slot for any node to send unscheduled messages in. It is the same as a Data message, however the transmitting node will need to deal with a potential loss of arbitration and attempt to send the message again in the next arbitration slot.
@@ -92,9 +92,18 @@ Each node on the G-TTCan network will need the following information:
 
 *Current Time*: The current network time (in units of 0.1 us). This should be syncrhonised when receiving a [Reference Message](reference-message) and maintained at best-effort resolution by the node.
 
-### Masters
+*Schedule Length* - How many entries in one round of the schedule.
+
+*Entry Duration* - How long (in NTU) each entry in the schedule is alloted. Must be greater than the tranmission time for a single can frame (in NTU).
+
+*NUM_ID_BITS* - The number of bits used for Node ID's.
+
+*NUM_DATAID_BITS* - The number of bits used for Data Slot ID's.
+
+*Local Schedule* - Each node will need to know when it should transmit in the schedule. This can be stored as a series of <global schedule index - data slot id> pairs (and this will fit inside a single uint32). Each node can calculate the transmission time by subtracting the current global schedule index from it's next transmission index and multiplying by the entry duration.
+
+### Masters (TBC)
 
 Node's with an ID of 1 - 7 are potential master nodes.
-
 Primary Master (ID: 1): This node should 
 
