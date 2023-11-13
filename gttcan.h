@@ -29,7 +29,7 @@ typedef struct gttcan_s {
     set_timer_int_callback_fp set_timer_int_callback;
     read_value_fp read_value;
     write_value_fp write_value;
-    void *callback_data;
+    void *context_pointer;
     
 
 } gttcan_t
