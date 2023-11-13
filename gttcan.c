@@ -29,7 +29,7 @@ void GTTCAN_init(gttcan_t *gttcan,
     gttcan->context_pointer = context_pointer;
 
     // Create global schedule. This could be changed to whiteboard slots
-    gttcan->slots[0] = GTTCAN_create_entry(1, 0); // Reference Frame from Time Master
+    gttcan->slots[0] = GTTCAN_create_entry(1, NETWORK_TIME_SLOT); // Reference Frame from Time Master
     gttcan->slots[1] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
     gttcan->slots[2] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);
     gttcan->slots[3] = GTTCAN_create_entry(10, NODE10_NUM_RECEIVED_FRAMES);
