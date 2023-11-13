@@ -3,9 +3,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "slot_defs.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 typedef void (*transmit_callback_fp)(uint32_t, uint64_t, void*);
 typedef void (*set_timer_int_callback_fp)(uint32_t, void*);
