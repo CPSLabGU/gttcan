@@ -1,10 +1,5 @@
 #include "gttcan.h"
-
-
-#define NODE1_NUM_RECEIVED_FRAMES 2
-#define NODE8_NUM_RECEIVED_FRAMES 3
-#define NODE9_NUM_RECEIVED_FRAMES 4
-#define NODE10_NUM_RECEIVED_FRAMES 5
+#include "slot_defs.h"
 
 gttcan_t gttcan;
 
@@ -29,7 +24,7 @@ void GTTCAN_init(gttcan_t *gttcan,
 
     gttcan->transmit_callback = transmit_callback;
     gttcan->set_timer_int_callback = set_timer_int_callback;
-    gttcan->read_value = read_value;
+gttcan->read_value = read_value;
     gttcan->write_value = write_value;
     gttcan->callback_data = callback_data;
 
@@ -58,21 +53,12 @@ void GTTCAN_init(gttcan_t *gttcan,
     }
 }
 void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_t data) {
-    uint16_t scheduleIndex = (can_frame_id_field >> 14);
-    uint16_t slotID = (can_frame_id_field & 0x3FFF);
-    uint8_t nodeID = gttcan->slots[scheduleIndex] >> 16;
+    uint16_t scheduleIndex = (can_frame_id_field >> 14); // TODO: CHECK IF THESE ARE VALID
+    uint16_t slotID = (can_frame_id_field & 0x3FFF); // TODO: CHECK IF THESE ARE VALID
+    uint8_t nodeID = gttcan->slots[scheduleIndex] >> 16; // TODO: CHECK IF THESE ARE VALID
 
-    if(slotID == 0) {  // If Reference Frame
+    if(slotID == NETWORK_TIME_SLOT) {  // If Reference Frame
         data+=1280; // Add 128us offset for transmission time - not exact because of stuffing bits, but gets it close
-        if(gttcan->localNodeId < 3) { // SPECIAL CASE: I am a master
-            // If the nodeid is lower than mine, do nothing (higher authority master is working)
-            if (gttcan->localNodeId < nodeID ) {
-            // Else, I need to resume authority at next start-of-schedule. 
-                // How do we know when this is? We probably have to wait for 1 start-of-schedule message, 
-                // then set our timer and local schedule for one full iteration of the schedule so we 
-                // transmit a start-of-scheudule message at next schedule.
-            }
-        }
         // Update global time using Data && 0x3FFFFFFFFFFFFFFF
         gttcan->write_value(0, (data & 0x3FFFFFFFFFFFFFFF), gttcan->callback_data);
         if ((data >> 63) == 1) { // If Start-of-schedule frame
@@ -82,11 +68,13 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
                 // Update local schedule
             uint32_t timeToFirstEntry = ((gttcan->localSchedule[gttcan->localScheduleIndex] >> 16) * gttcan->slotduration) - 1280;
             gttcan->set_timer_int_callback(timeToFirstEntry, gttcan->callback_data);
-        } else { // else normal reference frame
+        } else { // else normal reference frame 
+        // TODO: Move above 'start time' calculation to occur on any reference frame (not just start of schedule).
+        // Calculation will need to be updated as per re-calibration
         }
             
   } // Else if Normal message (id between 8 and 2^numIdBits-1), slotID between 1 and WBSIZE-1) 
-  else if (slotID >=1 && slotID < 512-1) {
+  else if (slotID >=1 && slotID < GSW_TOTAL_MESSAGE_TYPES-1) {
         // Update datastructure (whiteboard) with data in slot slotID
         gttcan->write_value(slotID, data, gttcan->callback_data);
   } else {
@@ -104,7 +92,7 @@ void GTTCAN_transmit_next_frame(gttcan_t * gttcan) {
     uint16_t slotID = gttcan->localSchedule[gttcan->localScheduleIndex] & 0xFFFF;
     uint64_t data = gttcan->read_value(slotID, gttcan->callback_data);
     if(globalScheduleIndex == 0U) { // if this is a start of schedule
-        data = data | 0x8000000000000000; // set MSB to 1
+        data = data | 0x8000000000000000; // set MSB to 1 (we may need to clear 62nd bit for TTCAn compatibility)
     }
     
     // If next not end of local schedule
@@ -114,15 +102,15 @@ void GTTCAN_transmit_next_frame(gttcan_t * gttcan) {
         gttcan->set_timer_int_callback(timeToNextEntry, gttcan->callback_data);  
     }
     else {
-        uint32_t timeRemainingInSchedule = (gttcan->scheduleLength - globalScheduleIndex) * gttcan->slotduration;
+        uint32_t slotsRemainingInSchedule = gttcan->scheduleLength - globalScheduleIndex;
         gttcan->localScheduleIndex = 0; // Reset local schedule index
         // calculate timer for first entry in next schedule round 
-        uint32_t timeToFirstEntry = ((gttcan->localSchedule[gttcan->localScheduleIndex] >> 16) * gttcan->slotduration);
+        uint32_t slotsToFirstEntry = gttcan->localSchedule[gttcan->localScheduleIndex] >> 16;
         // (in case master misses start of schedule, we should still transmit on schedule). 
         // This timer will be re-calculated if we receive a start of schedule frame
-        gttcan->set_timer_int_callback(timeRemainingInSchedule+timeToFirstEntry, gttcan->callback_data);
+        gttcan->set_timer_int_callback((slotsRemainingInSchedule+slotsToFirstEntry) * gttcan->slotduration);
     }
-
+    
     gttcan->transmit_callback(((globalScheduleIndex<<14) | slotID), data, gttcan->callback_data);
 }
 
