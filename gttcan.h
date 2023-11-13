@@ -8,6 +8,13 @@
 extern "C" {
 #endif
 
+#ifndef GTTCAN_MAX_SLOTS
+#define GTTCAN_MAX_SLOTS 512
+#endif
+
+#ifndef GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH
+#define GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH 32
+#endif
 
 typedef void (*transmit_callback_fp)(uint32_t, uint64_t, void*);
 typedef void (*set_timer_int_callback_fp)(uint32_t, void*);
@@ -17,7 +24,7 @@ typedef void (*write_value_fp)(uint16_t, uint64_t, void*);
 typedef struct gttcan_s {
 
     uint32_t slots[256]; // Array of 29 bit values masked by 0x1FFFFFFF
-    uint32_t localSchedule[32];
+    uint32_t localSchedule[GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH];
     uint32_t slotduration; // in NUT (0.1us)
     uint8_t scheduleLength; // number of schedule entries
         
@@ -34,7 +41,7 @@ typedef struct gttcan_s {
     void *context_pointer;
     
 
-} gttcan_t
+} gttcan_t;
 
 extern gttcan_t gttcan;
 

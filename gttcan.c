@@ -46,15 +46,15 @@ void GTTCAN_init(gttcan_t *gttcan,
         if(nodeid == localNodeId) {
             gttcan->localSchedule[gttcan->localScheduleLength] = (i<<16) | dataid;
             gttcan->localScheduleLength++;
-            if(gttcan->localScheduleLength >= 32) { // if more than 32 entries (replace 32 with #DEFINE)
+            if(gttcan->localScheduleLength >= GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH) { // if more than 32 entries (replace 32 with #DEFINE)
                 i = scheduleLength; // dont add any more entries
             }
         }
     }
 }
 void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_t data) {
-    uint16_t scheduleIndex = (can_frame_id_field >> 14); // TODO: CHECK IF THESE ARE VALID
-    uint16_t slotID = (can_frame_id_field & 0x3FFF); // TODO: CHECK IF THESE ARE VALID
+    uint16_t scheduleIndex = (can_frame_id_field >> 14) & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
+    uint16_t slotID = can_frame_id_field & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
     uint8_t nodeID = gttcan->slots[scheduleIndex] >> 16; // TODO: CHECK IF THESE ARE VALID
 
     if(slotID == NETWORK_TIME_SLOT) {  // If Reference Frame
@@ -74,7 +74,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
         }
             
   } // Else if Normal message (id between 8 and 2^numIdBits-1), slotID between 1 and WBSIZE-1) 
-  else if (slotID >=1 && slotID < GSW_TOTAL_MESSAGE_TYPES-1) {
+  else if (slotID >=1) {
         // Update datastructure (whiteboard) with data in slot slotID
         gttcan->write_value(slotID, data, gttcan->context_pointer);
   } else {
@@ -108,7 +108,7 @@ void GTTCAN_transmit_next_frame(gttcan_t * gttcan) {
         uint32_t slotsToFirstEntry = gttcan->localSchedule[gttcan->localScheduleIndex] >> 16;
         // (in case master misses start of schedule, we should still transmit on schedule). 
         // This timer will be re-calculated if we receive a start of schedule frame
-        gttcan->set_timer_int_callback((slotsRemainingInSchedule+slotsToFirstEntry) * gttcan->slotduration);
+        gttcan->set_timer_int_callback((slotsRemainingInSchedule+slotsToFirstEntry) * gttcan->slotduration, gttcan->context_pointer);
     }
     
     gttcan->transmit_callback(((globalScheduleIndex<<14) | slotID), data, gttcan->context_pointer);
