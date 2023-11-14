@@ -23,6 +23,8 @@ void GTTCAN_init(gttcan_t *gttcan,
     gttcan->localNodeId = localNodeId;
     gttcan->action_time = 0;
     gttcan->slot_offset = GTTCAN_DEFAULT_SLOT_OFFSET;
+    gttcan->error_accumulator = 0;
+    gttcan->slots_accumulated = 0;
 
     gttcan->transmit_callback = transmit_callback;
     gttcan->set_timer_int_callback = set_timer_int_callback;
@@ -71,6 +73,12 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
     uint16_t scheduleIndex = (can_frame_id_field >> 14) & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
     uint16_t slotID = can_frame_id_field & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
     uint8_t nodeID = gttcan->slots[scheduleIndex] >> 16; // TODO: CHECK IF THESE ARE VALID
+    int32_t slot_offset = GTTCAN_get_nth_slot_since_last_transmit(gttcan, scheduleIndex);
+    int32_t expected_time = slot_offset * gttcan->slotduration;
+    int32_t error = expected_time - gttcan->action_time;
+
+    gttcan->error_accumulator += error;
+    gttcan->slots_accumulated++;
 
     if(slotID == NETWORK_TIME_SLOT) {  // If Reference Frame
         data+=gttcan->slot_offset; // Add 128us offset for transmission time - not exact because of stuffing bits, but gets it close
@@ -133,4 +141,11 @@ void GTTCAN_start(gttcan_t * gttcan) {
     gttcan->localScheduleIndex = 0; // reset node to start of schedule.
     gttcan->isActive = true; // activate this node
     GTTCAN_transmit_next_frame(gttcan); // send first message in schedule - shoule be start of sxhedule frame for master
+}
+
+uint16_t GTTCAN_get_nth_slot_since_last_transmit(gttcan_t * gttcan, uint16_t n) {
+    if (gttcan->localScheduleIndex > 0)
+        return n - (gttcan->localSchedule[gttcan->localScheduleIndex-1] >> 16);
+    else
+        return gttcan->scheduleLength - (gttcan->localSchedule[gttcan->localScheduleLength-1] >> 16) + n;
 }
