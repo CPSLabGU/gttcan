@@ -34,6 +34,7 @@ typedef struct gttcan_s {
     uint32_t slotduration; // in NUT (0.1us)
 
     uint32_t action_time; // The time the next transmission interrupt will fire
+    uint32_t slot_offset; // Timer correction in NUT (0.1us)
 
     uint8_t scheduleLength; // number of schedule entries        
     uint8_t localNodeId;  

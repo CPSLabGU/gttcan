@@ -22,6 +22,7 @@ void GTTCAN_init(gttcan_t *gttcan,
     gttcan->isActive = false;
     gttcan->localNodeId = localNodeId;
     gttcan->action_time = 0;
+    gttcan->slot_offset = GTTCAN_DEFAULT_SLOT_OFFSET;
 
     gttcan->transmit_callback = transmit_callback;
     gttcan->set_timer_int_callback = set_timer_int_callback;
@@ -72,7 +73,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
     uint8_t nodeID = gttcan->slots[scheduleIndex] >> 16; // TODO: CHECK IF THESE ARE VALID
 
     if(slotID == NETWORK_TIME_SLOT) {  // If Reference Frame
-        data+=GTTCAN_DEFAULT_SLOT_OFFSET; // Add 128us offset for transmission time - not exact because of stuffing bits, but gets it close
+        data+=gttcan->slot_offset; // Add 128us offset for transmission time - not exact because of stuffing bits, but gets it close
         // Update global time using Data && 0x3FFFFFFFFFFFFFFF
         gttcan->write_value(0, (data & 0x3FFFFFFFFFFFFFFF), gttcan->context_pointer);
         if ((data >> 63) == 1) { // If Start-of-schedule frame
@@ -80,7 +81,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
             gttcan->localScheduleIndex = 0;
             // Check if local schedule Update Required (To be discussed)
                 // Update local schedule
-            uint32_t timeToFirstEntry = ((gttcan->localSchedule[gttcan->localScheduleIndex] >> 16) * gttcan->slotduration) - GTTCAN_DEFAULT_SLOT_OFFSET;
+            uint32_t timeToFirstEntry = ((gttcan->localSchedule[gttcan->localScheduleIndex] >> 16) * gttcan->slotduration) - gttcan->slot_offset;
             gttcan->set_timer_int_callback(timeToFirstEntry, gttcan->context_pointer);
         } else { // else normal reference frame 
         // TODO: Move above 'start time' calculation to occur on any reference frame (not just start of schedule).
