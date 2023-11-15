@@ -38,4 +38,19 @@ final class gttcanTests: XCTestCase {
         XCTAssertNotNil(ttcanptr.pointee.write_value)
         XCTAssertEqual(ttcanptr.pointee.context_pointer, UnsafeMutableRawPointer(ttcanptr))
     }
+
+    func testFTA() {
+        XCTAssertEqual(ttcanptr.pointee.error_accumulator, 0)
+        XCTAssertEqual(ttcanptr.pointee.slots_accumulated, 0)
+        XCTAssertEqual(GTTCAN_fta(ttcanptr), 0)
+        ttcanptr.pointee.error_accumulator = 1
+        ttcanptr.pointee.slots_accumulated = 1
+        XCTAssertEqual(GTTCAN_fta(ttcanptr), 1)
+        ttcanptr.pointee.error_accumulator = -3
+        ttcanptr.pointee.slots_accumulated = 2
+        XCTAssertEqual(GTTCAN_fta(ttcanptr), -1)
+        ttcanptr.pointee.error_accumulator = 3
+        ttcanptr.pointee.slots_accumulated = 4
+        XCTAssertEqual(GTTCAN_fta(ttcanptr), 2)
+    }
 }

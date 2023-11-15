@@ -24,6 +24,8 @@ void GTTCAN_init(gttcan_t *gttcan,
     gttcan->action_time = 0;
     gttcan->slot_offset = GTTCAN_DEFAULT_SLOT_OFFSET;
     gttcan->error_accumulator = 0;
+    gttcan->lower_outlier = INT32_MAX;
+    gttcan->upper_outlier = INT32_MIN;
     gttcan->slots_accumulated = 0;
 
     gttcan->transmit_callback = transmit_callback;
@@ -78,6 +80,12 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
     int32_t error = expected_time - gttcan->action_time;
 
     gttcan->error_accumulator += error;
+    if (error < gttcan->lower_outlier) {
+        gttcan->lower_outlier = error;
+    }
+    if (error > gttcan->upper_outlier) {
+        gttcan->upper_outlier = error;
+    }
     gttcan->slots_accumulated++;
 
     if(slotID == NETWORK_TIME_SLOT) {  // If Reference Frame
@@ -148,4 +156,30 @@ uint16_t GTTCAN_get_nth_slot_since_last_transmit(gttcan_t * gttcan, uint16_t n) 
         return n - (gttcan->localSchedule[gttcan->localScheduleIndex-1] >> 16);
     else
         return gttcan->scheduleLength - (gttcan->localSchedule[gttcan->localScheduleLength-1] >> 16) + n;
+}
+
+/// @brief Return the fault-tolerant average error.
+///
+/// This function returns the fault-tolerant average error
+/// and resets the error accumulator.
+/// If not enough errors have been accumulated, this function
+/// will degrade to an arithmetic average.
+///
+/// @param gttcan The gttcan instance.
+/// @return The fault-tolerant average error.
+int32_t GTTCAN_fta(gttcan_t *gttcan)
+{
+    int32_t error;
+    switch (gttcan->slots_accumulated) {
+        case 0: error = 0; break; // no errors accumulated
+        case 1: // not enough errors to run an FTA, so
+        case 2: // degrade to an arithmetic average
+            error = gttcan->error_accumulator / gttcan->slots_accumulated;
+            break;
+
+        default: // we have enough error samples to do fault-tolerant averaging
+            error = (gttcan->error_accumulator - gttcan->lower_outlier - gttcan->upper_outlier) / (gttcan->slots_accumulated - 2);
+    }
+
+    return error;
 }

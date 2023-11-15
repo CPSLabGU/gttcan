@@ -35,7 +35,9 @@ typedef struct gttcan_s {
 
     uint32_t action_time; // The time the next transmission interrupt will fire
     uint32_t slot_offset; // Timer correction in NUT (0.1us)
-    uint32_t error_accumulator; // accumulated error
+    int32_t error_accumulator; // accumulated error
+    int32_t lower_outlier;  // lower-end outlier error
+    int32_t upper_outlier;  // higher-end outlier error
 
     uint16_t slots_accumulated; // the number of slots we have accumulated errors for
 
@@ -62,6 +64,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
 void GTTCAN_transmit_next_frame(gttcan_t *gttcan);
 void GTTCAN_start(gttcan_t *gttcan);
 uint16_t GTTCAN_get_nth_slot_since_last_transmit(gttcan_t * gttcan, uint16_t n);
+int32_t GTTCAN_fta(gttcan_t *);
 
 #ifdef __cplusplus
 }; // extern "C"
