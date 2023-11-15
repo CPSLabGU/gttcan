@@ -59,12 +59,13 @@ typedef struct gttcan_s {
 
 extern gttcan_t gttcan;
 
-void GTTCAN_init(gttcan_t *gttcan, uint8_t localNodeId, uint32_t slotduration, uint8_t scheduleLength, transmit_callback_fp transmit_callback, set_timer_int_callback_fp set_timer_int_callback, read_value_fp read_value, write_value_fp write_value, void *readwrite_data);
-void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_t data);
-void GTTCAN_transmit_next_frame(gttcan_t *gttcan);
-void GTTCAN_start(gttcan_t *gttcan);
-uint16_t GTTCAN_get_nth_slot_since_last_transmit(gttcan_t * gttcan, uint16_t n);
+void GTTCAN_init(gttcan_t *, uint8_t, uint32_t, uint8_t, transmit_callback_fp, set_timer_int_callback_fp, read_value_fp, write_value_fp, void *);
+void GTTCAN_process_frame(gttcan_t *, uint32_t, uint64_t);
+void GTTCAN_transmit_next_frame(gttcan_t *);
+void GTTCAN_start(gttcan_t *);
+void GTTCAN_accumulate_error(gttcan_t *, int32_t);
 int32_t GTTCAN_fta(gttcan_t *);
+uint16_t GTTCAN_get_nth_slot_since_last_transmit(gttcan_t * gttcan, uint16_t n);
 
 #ifdef __cplusplus
 }; // extern "C"

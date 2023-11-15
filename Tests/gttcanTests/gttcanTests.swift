@@ -42,6 +42,8 @@ final class gttcanTests: XCTestCase {
     func testFTA() {
         XCTAssertEqual(ttcanptr.pointee.error_accumulator, 0)
         XCTAssertEqual(ttcanptr.pointee.slots_accumulated, 0)
+        XCTAssertEqual(ttcanptr.pointee.lower_outlier, Int32.max)
+        XCTAssertEqual(ttcanptr.pointee.upper_outlier, Int32.min)
         XCTAssertEqual(GTTCAN_fta(ttcanptr), 0)
         ttcanptr.pointee.error_accumulator = 1
         ttcanptr.pointee.slots_accumulated = 1
@@ -52,5 +54,24 @@ final class gttcanTests: XCTestCase {
         ttcanptr.pointee.error_accumulator = 3
         ttcanptr.pointee.slots_accumulated = 4
         XCTAssertEqual(GTTCAN_fta(ttcanptr), 2)
+        GTTCAN_accumulate_error(ttcanptr, -1)
+        XCTAssertEqual(ttcanptr.pointee.lower_outlier, -1)
+        XCTAssertEqual(ttcanptr.pointee.upper_outlier, -1)
+        GTTCAN_accumulate_error(ttcanptr, 1)
+        XCTAssertEqual(ttcanptr.pointee.lower_outlier, -1)
+        XCTAssertEqual(ttcanptr.pointee.upper_outlier, 1)
+        GTTCAN_accumulate_error(ttcanptr, -2)
+        GTTCAN_accumulate_error(ttcanptr, 2)
+        XCTAssertEqual(ttcanptr.pointee.lower_outlier, -2)
+        XCTAssertEqual(ttcanptr.pointee.upper_outlier, 2)
+        GTTCAN_accumulate_error(ttcanptr, -3)
+        GTTCAN_accumulate_error(ttcanptr, 3)
+        XCTAssertEqual(ttcanptr.pointee.lower_outlier, -3)
+        XCTAssertEqual(ttcanptr.pointee.upper_outlier, 3)
+        XCTAssertEqual(GTTCAN_fta(ttcanptr), 0)
+        XCTAssertEqual(ttcanptr.pointee.lower_outlier, Int32.max)
+        XCTAssertEqual(ttcanptr.pointee.upper_outlier, Int32.min)
+        XCTAssertEqual(ttcanptr.pointee.error_accumulator, 0)
+        XCTAssertEqual(ttcanptr.pointee.slots_accumulated, 0)
     }
 }

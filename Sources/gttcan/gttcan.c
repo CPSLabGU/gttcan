@@ -23,10 +23,6 @@ void GTTCAN_init(gttcan_t *gttcan,
     gttcan->localNodeId = localNodeId;
     gttcan->action_time = 0;
     gttcan->slot_offset = GTTCAN_DEFAULT_SLOT_OFFSET;
-    gttcan->error_accumulator = 0;
-    gttcan->lower_outlier = INT32_MAX;
-    gttcan->upper_outlier = INT32_MIN;
-    gttcan->slots_accumulated = 0;
 
     gttcan->transmit_callback = transmit_callback;
     gttcan->set_timer_int_callback = set_timer_int_callback;
@@ -70,7 +66,10 @@ void GTTCAN_init(gttcan_t *gttcan,
             }
         }
     }
+    // Reset the FTA
+    (void) GTTCAN_fta(gttcan);
 }
+
 void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_t data) {
     uint16_t scheduleIndex = (can_frame_id_field >> 14) & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
     uint16_t slotID = can_frame_id_field & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
@@ -79,14 +78,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
     int32_t expected_time = slot_offset * gttcan->slotduration;
     int32_t error = expected_time - gttcan->action_time;
 
-    gttcan->error_accumulator += error;
-    if (error < gttcan->lower_outlier) {
-        gttcan->lower_outlier = error;
-    }
-    if (error > gttcan->upper_outlier) {
-        gttcan->upper_outlier = error;
-    }
-    gttcan->slots_accumulated++;
+    GTTCAN_accumulate_error(gttcan, error);
 
     if(slotID == NETWORK_TIME_SLOT) {  // If Reference Frame
         data+=gttcan->slot_offset; // Add 128us offset for transmission time - not exact because of stuffing bits, but gets it close
@@ -181,5 +173,29 @@ int32_t GTTCAN_fta(gttcan_t *gttcan)
             error = (gttcan->error_accumulator - gttcan->lower_outlier - gttcan->upper_outlier) / (gttcan->slots_accumulated - 2);
     }
 
+    gttcan->error_accumulator = 0;
+    gttcan->lower_outlier = INT32_MAX;
+    gttcan->upper_outlier = INT32_MIN;
+    gttcan->slots_accumulated = 0;
+
     return error;
+}
+
+/// @brief Accumulate an error sample.
+///
+/// This function adds the given error to the accumulator
+/// and updates the lower and upper outliers as necessary.
+///
+/// @param gttcan The gttcan instance to operate on.
+/// @param error  The error to accumulate.
+void GTTCAN_accumulate_error(gttcan_t *gttcan, int32_t error)
+{
+    gttcan->error_accumulator += error;
+
+    if (error < gttcan->lower_outlier)
+        gttcan->lower_outlier = error;
+    if (error > gttcan->upper_outlier)
+        gttcan->upper_outlier = error;
+
+    gttcan->slots_accumulated++;
 }
