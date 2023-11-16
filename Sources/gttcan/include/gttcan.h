@@ -17,9 +17,9 @@ extern "C" {
 #endif
 
 #ifdef STM32
-#define GTTCAN_DEFAULT_SLOT_OFFSET 1650
+#define GTTCAN_DEFAULT_SLOT_OFFSET -1650
 #else
-#define GTTCAN_DEFAULT_SLOT_OFFSET 1480
+#define GTTCAN_DEFAULT_SLOT_OFFSET -1480
 #endif
 
 typedef void (*transmit_callback_fp)(uint32_t, uint64_t, void*);
@@ -34,7 +34,7 @@ typedef struct gttcan_s {
     uint32_t slotduration; // in NUT (0.1us)
 
     uint32_t action_time; // The time the next transmission interrupt will fire
-    uint32_t slot_offset; // Timer correction in NUT (0.1us)
+    uint32_t error_offset; // Timer correction in NUT (0.1us)
     int32_t error_accumulator; // accumulated error
     int32_t lower_outlier;  // lower-end outlier error
     int32_t upper_outlier;  // higher-end outlier error
@@ -47,6 +47,7 @@ typedef struct gttcan_s {
     uint8_t localScheduleIndex;
 
     bool isActive;
+    bool transmitted;
 
     transmit_callback_fp transmit_callback;
     set_timer_int_callback_fp set_timer_int_callback;
