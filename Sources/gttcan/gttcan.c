@@ -80,7 +80,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
     int32_t error = expected_time - gttcan->action_time;
 
     GTTCAN_accumulate_error(gttcan, error);
-    if (gttcan->slots_accumulated > 100) {
+    if (gttcan->slots_accumulated > 10) {
         gttcan->error_offset = GTTCAN_fta(gttcan);
     }
 
@@ -152,14 +152,13 @@ void GTTCAN_start(gttcan_t * gttcan) {
 }
 
 uint16_t GTTCAN_get_nth_slot_since_last_transmit(gttcan_t * gttcan, uint16_t n) {
-    if (gttcan->localScheduleIndex > 0)
-        return n - (gttcan->localSchedule[gttcan->localScheduleIndex-1] >> 16);
-    else
-        if(gttcan->transmitted) {
-            return gttcan->scheduleLength - (gttcan->localSchedule[gttcan->localScheduleLength-1] >> 16) + n;
-        }
-        return n;
-        
+    if (!gttcan->transmitted) return n;
+    const uint16_t lastTransmitIndex = gttcan->localScheduleIndex > 0
+        ? (uint16_t) gttcan->localSchedule[gttcan->localScheduleIndex - 1] >> 16
+        : (uint16_t) gttcan->localSchedule[gttcan->localScheduleLength - 1] >> 16;
+    return n > lastTransmitIndex
+        ? n - lastTransmitIndex
+        : (gttcan->scheduleLength - lastTransmitIndex) + n;
 }
 
 /// @brief Return the fault-tolerant average error.
