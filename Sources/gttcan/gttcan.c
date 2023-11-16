@@ -154,8 +154,8 @@ void GTTCAN_start(gttcan_t * gttcan) {
 uint16_t GTTCAN_get_nth_slot_since_last_transmit(gttcan_t * gttcan, uint16_t n) {
     if (!gttcan->transmitted) return n;
     const uint16_t lastTransmitIndex = gttcan->localScheduleIndex > 0
-        ? (uint16_t) gttcan->localSchedule[gttcan->localScheduleIndex - 1] >> 16
-        : (uint16_t) gttcan->localSchedule[gttcan->localScheduleLength - 1] >> 16;
+        ? (uint16_t) (gttcan->localSchedule[gttcan->localScheduleIndex - 1] >> 16)
+        : (uint16_t) (gttcan->localSchedule[gttcan->localScheduleLength - 1] >> 16);
     return n > lastTransmitIndex
         ? n - lastTransmitIndex
         : (gttcan->scheduleLength - lastTransmitIndex) + n;
