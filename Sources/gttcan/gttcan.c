@@ -4,7 +4,7 @@
 gttcan_t gttcan;
 
 static uint32_t GTTCAN_create_entry(uint8_t id, uint16_t dataslot) {
-    return (id << 16) | dataslot;
+    return ((uint32_t)id << 16) | dataslot;
 }
 
 void GTTCAN_init(gttcan_t *gttcan,
@@ -60,7 +60,7 @@ void GTTCAN_init(gttcan_t *gttcan,
         uint8_t nodeid = (gttcan->slots[i] >> 16) & 0XFF;
         uint16_t dataid = gttcan->slots[i] & 0xFFFF;
         if(nodeid == localNodeId) {
-            gttcan->localSchedule[gttcan->localScheduleLength] = (i<<16) | dataid;
+            gttcan->localSchedule[gttcan->localScheduleLength] = (uint32_t)i<<16 | dataid;
             gttcan->localScheduleLength++;
             if(gttcan->localScheduleLength >= GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH) { // if more than 32 entries (replace 32 with #DEFINE)
                 i = scheduleLength; // dont add any more entries
