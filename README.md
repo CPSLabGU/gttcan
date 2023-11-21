@@ -11,10 +11,6 @@ The schedule is the basis of the protocol. The exact implementation can be decid
 
 *Entry Duration* - How long (in NTU) each entry in the schedule is alloted. Must be greater than the tranmission time for a single can frame (in NTU).
 
-*NUM_ID_BITS* - The number of bits used for Node ID's.
-
-*NUM_DATAID_BITS* - The number of bits used for Data Slot ID's.
-
 *Schedule Data* - The schedule data itself. This does not need to be stored on each node, or anywhere even, however the information from the schedule must be used to generate each node's *local schedule*. In practice, it may be desirable for every node to have the full schedule.
 
 The schedule can be stored as a series of entries (of length *Schedule Length*). Each entry contains a node ID and a data ID. For a typical use case, each of these can be encoded as a byte, though for larger networks/data structures, these could be encoded as 2 bytes each. There are 4 types of entries in the schedule:
@@ -46,27 +42,27 @@ It is important to note that only 29 bits are available in the CAN Frame header 
 
 #### 29 bit ID for CAN Frame Header
 
-All messages should be sent using extended can frame ID's. This allows for a 29bit ID field to be transmitted with each frame, which is used to transmit both the node id and the data field id.
+All messages should be sent using extended can frame ID's. This allows for a 29bit ID field to be transmitted with each frame, which is used to transmit both the schedule index and the data field id.
 
 The bit formatting is as follows:
 ```
 0 x (29-NUM_ID_BITS-NUM_DATAID_BITS)
-i x NUM_ID_BITS
+i x SCHEDULE_ID_BITS
 d x NUM_DATAID_BITS
 
-i = Node ID value
+i = Schedule index value
 d = Data ID value
 
-For an 8 bit Node ID and a 16bit data slot ID, the CAN Frame ID value would look like this:
-00000iiiiiiiidddddddddddddddd
+For an 14 bit schedule index and a 14 bit data slot ID, the CAN Frame ID value would look like this:
+0iiiiiiiiiiiiiidddddddddddddd
 ```
 
 #### Reference message
 
-A reference message is a CAN frame sent by a node with an ID of 1-7 (the first 7 ids are reserved for time masters) with a data ID of 0. The first bit is used to indicate that this reference frame is the first frame in the schedule. This allows for the schedule to contain multiple reference messages for tighter time synchronisation. This is followed by 62 timing bits. 
+A reference message is a CAN frame sent by a node with an ID of 1-7 (the first 7 ids are reserved for time masters) with a data ID of 0. The first data bit (MSB) is used to indicate that this reference frame is the first frame in the schedule. This allows for the schedule to contain multiple reference messages for tighter time synchronisation. This is followed by a reserved bit and then 62 timing bits. 
 
 
-##### 8 byte (64 bit) data payload for reference messages
+##### 8 byte (64 bit) Data payload for reference messages
 ```
 SRtttttt tttttttt tttttttt tttttttt
 S = Start of schedule (0/1)
@@ -77,7 +73,8 @@ t = timevalue (62 bit)
 
 #### Standard Message
 
-A standard message has the full 8 bytes available for data transmission. Although the schedule slot dictates which node and what data will be sent, the Data ID value should still be encoded in the least-significant bits in the Can Frame ID. 
+A standard message has the full 8 bytes available for data transmission. Although the schedule slot dictates what data will be sent, the Data ID value should still be encoded in the least-significant bits in the Can Frame ID. 
+
 <!--
 #### Arbitration message
 
@@ -96,11 +93,7 @@ Each node on the G-TTCan network will need the following information:
 
 *Entry Duration* - How long (in NTU) each entry in the schedule is alloted. Must be greater than the tranmission time for a single can frame (in NTU).
 
-*NUM_ID_BITS* - The number of bits used for Node ID's.
-
-*NUM_DATAID_BITS* - The number of bits used for Data Slot ID's.
-
-*Local Schedule* - Each node will need to know when it should transmit in the schedule. This can be stored as a series of <global schedule index - data slot id> pairs (and this will fit inside a single uint32). Each node can calculate the transmission time by subtracting the current global schedule index from it's next transmission index and multiplying by the entry duration.
+*Local Schedule* - Each node will need to know when it should transmit in the schedule. This can be stored as a series of <global schedule index - data slot id> pairs (and this will fit inside a single uint32). Each node can calculate the next transmission time by subtracting the current global schedule index from it's next transmission index and multiplying this result (the number of schedule slots until a node must next transmit) by the slot duration.
 
 ### Masters (TBC)
 
