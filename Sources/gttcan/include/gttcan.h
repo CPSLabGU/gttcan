@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 #ifdef STM32
-#define GTTCAN_DEFAULT_SLOT_OFFSET 1650
+#define GTTCAN_DEFAULT_SLOT_OFFSET 1600
 #else
 #define GTTCAN_DEFAULT_SLOT_OFFSET 1480
 #endif
@@ -37,6 +37,7 @@ typedef struct gttcan_s {
     int32_t error_offset; // Timer correction in NUT (0.1us)
     int32_t state_correction;
     int32_t error_accumulator; // accumulated error
+    int32_t previous_accumulator;
     int32_t lower_outlier;  // lower-end outlier error
     int32_t upper_outlier;  // higher-end outlier error
 
