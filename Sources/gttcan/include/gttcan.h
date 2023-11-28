@@ -31,8 +31,11 @@ typedef struct gttcan_s {
 
     uint32_t slots[256]; // Array of 29 bit values masked by 0x1FFFFFFF
     uint32_t localSchedule[GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH];
-    uint32_t slotduration; // in NUT (0.1us)
 
+    uint16_t localScheduleSlotID[GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH];
+    uint16_t localScheduleDataID[GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH];
+
+    uint32_t slotduration; // in NUT (0.1us)
     uint32_t action_time; // The time the next transmission interrupt will fire
     int32_t error_offset; // Timer correction in NUT (0.1us)
     int32_t state_correction;
@@ -43,7 +46,7 @@ typedef struct gttcan_s {
 
     uint16_t slots_accumulated; // the number of slots we have accumulated errors for
 
-    uint8_t scheduleLength; // number of schedule entries        
+    uint16_t globalScheduleLength; // number of schedule entries        
     uint8_t localNodeId;  
     uint8_t localScheduleLength;
     uint8_t localScheduleIndex;
@@ -68,7 +71,7 @@ void GTTCAN_transmit_next_frame(gttcan_t *);
 void GTTCAN_start(gttcan_t *);
 void GTTCAN_accumulate_error(gttcan_t *, int32_t);
 int32_t GTTCAN_fta(gttcan_t *);
-uint16_t GTTCAN_get_nth_slot_since_last_transmit(gttcan_t * gttcan, uint16_t n);
+uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t n);
 
 #ifdef __cplusplus
 }; // extern "C"
