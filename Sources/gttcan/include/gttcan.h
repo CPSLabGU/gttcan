@@ -63,14 +63,118 @@ typedef struct gttcan_s {
 
 } gttcan_t;
 
-void GTTCAN_init(gttcan_t *, uint8_t, uint32_t, uint16_t, transmit_callback_fp, set_timer_int_callback_fp, read_value_fp, write_value_fp, void *);
-void GTTCAN_process_frame(gttcan_t *, uint32_t, uint64_t);
-void GTTCAN_transmit_next_frame(gttcan_t *);
-void GTTCAN_start(gttcan_t *);
-void GTTCAN_accumulate_error(gttcan_t *, int32_t);
-int32_t GTTCAN_fta(gttcan_t *);
-uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t *, uint16_t);
-uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t *, uint16_t);
+/**
+ * @brief Initialize a GTTCAN instance.
+ *
+ * @param gttcan The GTTCAN instance to initialize.
+ * @param localNodeId The local node ID.
+ * @param slotduration The duration of a slot.
+ * @param globalScheduleLength The length of the global schedule.
+ * @param transmit_callback The transmit callback function.
+ * @param set_timer_int_callback The set timer interrupt callback function.
+ * @param read_value The read value function.
+ * @param write_value The write value function.
+ * @param context_pointer The context pointer.
+ */
+void GTTCAN_init(gttcan_t *gttcan,
+                uint8_t localNodeId,
+                uint32_t slotduration,
+                uint16_t globalScheduleLength,
+                transmit_callback_fp transmit_callback,
+                set_timer_int_callback_fp set_timer_int_callback,
+                read_value_fp read_value,
+                write_value_fp write_value,
+                void *context_pointer);
+
+/**
+ * @brief Process a received CAN frame.
+ *
+ * This function processes a received CAN frame, updates the global time,
+ * and handles the data based on the slot ID. It also calculates the time
+ * to the next entry and sets a timer interrupt for that time.
+ *
+ * When a reference frame is received, the node is activated,
+ * and the local schedule is reset.
+ *
+ * If no reference fram has been received for the duration
+ * of the global schedule, clock synchronisation is performed
+ * using the fault-tolerant average error.
+ *
+ * @param gttcan The GTTCAN instance.
+ * @param can_frame_id_field The ID field of the received CAN frame.
+ * @param data The data of the received CAN frame.
+ */
+void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_t data);
+
+/**
+ * @brief Transmit the next frame in the GTTCAN schedule.
+ *
+ * This function checks if the node is active, and if so,
+ * transmits the next frame in the local schedule.
+ * It also calculates the time to the next entry and
+ * runs the callback function to set a timer interrupt
+ * for that point in time.
+ *
+ * @param gttcan The GTTCAN instance.
+ */
+void GTTCAN_transmit_next_frame(gttcan_t *gttcan);
+
+/**
+ * @brief Start the GTTCAN instance.
+ *
+ * This function should only ever be called on master.
+ * It resets the node to the start of the schedule,
+ * activates the node, and sends the first message in the schedule.
+ *
+ * @param gttcan The GTTCAN instance.
+ */
+void GTTCAN_start(gttcan_t * gttcan);
+
+/**
+ * @brief Get the number of slots to the next transmit.
+ *
+ * This function calculates the number of slots to the next transmit slot in the schedule.
+ *
+ * @param gttcan The GTTCAN instance.
+ * @param currentScheduleIndex The current index in the schedule.
+ * @return The number of slots to the next transmit.
+ */
+uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t *gttcan, uint16_t currentScheduleIndex);
+
+/**
+ * @brief Get the number of slots since the last transmit.
+ *
+ * This function calculates the number of slots since the last transmit in the schedule.
+ *
+ * @param gttcan The GTTCAN instance.
+ * @param currentScheduleIndex The current index in the schedule.
+ * @return The number of slots since the last transmit.
+ */
+uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t currentScheduleIndex);
+
+/**
+ * @brief Return the fault-tolerant average error.
+ *
+ * This function returns the fault-tolerant average error
+ * and resets the error accumulator.
+ * If not enough errors have been accumulated, this function
+ * will degrade to an arithmetic average.
+ *
+ * @param gttcan The gttcan instance.
+ * @return The fault-tolerant average error.
+ */
+int32_t GTTCAN_fta(gttcan_t *gttcan);
+
+/**
+ * @brief Accumulate an error sample.
+ *
+ * This function adds the given error to the accumulator
+ * and updates the lower and upper outliers as necessary.
+ *
+ * @param gttcan The gttcan instance to operate on.
+ * @param error  The error to accumulate.
+ */
+void GTTCAN_accumulate_error(gttcan_t *gttcan, int32_t error);
 
 #ifdef __cplusplus
 }; // extern "C"

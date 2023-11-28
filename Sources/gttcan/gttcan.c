@@ -172,7 +172,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
  * 
  * @param gttcan The GTTCAN instance.
  */
-void GTTCAN_transmit_next_frame(gttcan_t * gttcan) 
+void GTTCAN_transmit_next_frame(gttcan_t *gttcan)
 {
     // Check Node is active
     if (!gttcan->isActive) 
@@ -216,7 +216,7 @@ void GTTCAN_transmit_next_frame(gttcan_t * gttcan)
  * 
  * @param gttcan The GTTCAN instance.
  */
-void GTTCAN_start(gttcan_t * gttcan) // Should only ever be called on master
+void GTTCAN_start(gttcan_t *gttcan)
 {
     gttcan->localScheduleIndex = 0; // reset node to start of schedule.
     gttcan->isActive = true; // activate this node
@@ -232,7 +232,7 @@ void GTTCAN_start(gttcan_t * gttcan) // Should only ever be called on master
  * @param currentScheduleIndex The current index in the schedule.
  * @return The number of slots to the next transmit.
  */
-uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t * gttcan, uint16_t currentScheduleIndex)
+uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t *gttcan, uint16_t currentScheduleIndex)
 {
     uint16_t nextTransmitIndex = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
     return currentScheduleIndex >= nextTransmitIndex
@@ -261,15 +261,17 @@ uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t curren
         : (gttcan->globalScheduleLength - lastTransmitIndex) + currentScheduleIndex; // else last transmission  was in the previous schedule round
 }
 
-/// @brief Return the fault-tolerant average error.
-///
-/// This function returns the fault-tolerant average error
-/// and resets the error accumulator.
-/// If not enough errors have been accumulated, this function
-/// will degrade to an arithmetic average.
-///
-/// @param gttcan The gttcan instance.
-/// @return The fault-tolerant average error.
+/**
+ * @brief Return the fault-tolerant average error.
+ *
+ * This function returns the fault-tolerant average error
+ * and resets the error accumulator.
+ * If not enough errors have been accumulated, this function
+ * will degrade to an arithmetic average.
+ *
+ * @param gttcan The gttcan instance.
+ * @return The fault-tolerant average error.
+ */
 int32_t GTTCAN_fta(gttcan_t *gttcan)
 {
     int32_t error;
@@ -297,13 +299,15 @@ int32_t GTTCAN_fta(gttcan_t *gttcan)
     return error;
 }
 
-/// @brief Accumulate an error sample.
-///
-/// This function adds the given error to the accumulator
-/// and updates the lower and upper outliers as necessary.
-///
-/// @param gttcan The gttcan instance to operate on.
-/// @param error  The error to accumulate.
+/**
+ * @brief Accumulate an error sample.
+ *
+ * This function adds the given error to the accumulator
+ * and updates the lower and upper outliers as necessary.
+ *
+ * @param gttcan The gttcan instance to operate on.
+ * @param error  The error to accumulate.
+ */
 void GTTCAN_accumulate_error(gttcan_t *gttcan, int32_t error)
 {
     if(!gttcan->transmitted) return;
