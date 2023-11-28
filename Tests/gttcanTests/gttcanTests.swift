@@ -96,17 +96,18 @@ final class gttcanTests: XCTestCase {
         let timer = Int(expectedTimer) + gttcanTests.canSlotOffset + slowNodeOffset
         ttcan.action_time = UInt32(timer - gttcanTests.canSlotOffset)
         XCTAssertEqual(ttcan.action_time, expectedTimer + UInt32(slowNodeOffset))
-        GTTCAN_process_frame(&ttcan, scheduleIndex(1) | gttcanTests.data1 , 0)
+        GTTCAN_process_frame(&ttcan, scheduleIndex(1) | gttcanTests.data1, 0)
         // We expect the accumulated error to be -1 (from our perspective)
         XCTAssertEqual(ttcan.error_accumulator, -1)
         XCTAssertEqual(ttcan.slots_accumulated, 1)
         XCTAssertEqual(ttcan.lower_outlier, -1)
         XCTAssertEqual(ttcan.upper_outlier, -1)
-        for _ in 2...4 {
-            GTTCAN_process_frame(&ttcan, scheduleIndex(1) | gttcanTests.data1 , 0)
+        for _ in 2...3 {
+            ttcan.action_time = UInt32(timer - gttcanTests.canSlotOffset)
+            GTTCAN_process_frame(&ttcan, scheduleIndex(1) | gttcanTests.data1, 0)
         }
-        XCTAssertEqual(ttcan.error_accumulator, -4)
-        XCTAssertEqual(ttcan.slots_accumulated, 4)
+        XCTAssertEqual(ttcan.error_accumulator, -3)
+        XCTAssertEqual(ttcan.slots_accumulated, 3)
         XCTAssertEqual(ttcan.lower_outlier, -1)
         XCTAssertEqual(ttcan.upper_outlier, -1)
     }
