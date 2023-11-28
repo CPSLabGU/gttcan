@@ -1,3 +1,7 @@
+/**
+ * @file gttcan.c
+ * @brief This file contains the implementation of the GTTCAN protocol.
+ */
 #include "gttcan.h"
 #include "slot_defs.h"
 
@@ -7,6 +11,20 @@ static uint32_t GTTCAN_create_entry(uint8_t id, uint16_t dataslot) {
     return ((uint32_t)id << 16) | dataslot;
 }
 
+
+/**
+ * @brief Initialize a GTTCAN instance.
+ * 
+ * @param gttcan The GTTCAN instance to initialize.
+ * @param localNodeId The local node ID.
+ * @param slotduration The duration of a slot.
+ * @param globalScheduleLength The length of the global schedule.
+ * @param transmit_callback The transmit callback function.
+ * @param set_timer_int_callback The set timer interrupt callback function.
+ * @param read_value The read value function.
+ * @param write_value The write value function.
+ * @param context_pointer The context pointer.
+ */
 void GTTCAN_init(gttcan_t *gttcan,
                 uint8_t localNodeId,
                 uint32_t slotduration, 
@@ -72,6 +90,24 @@ void GTTCAN_init(gttcan_t *gttcan,
     (void) GTTCAN_fta(gttcan);
 }
 
+/**
+ * @brief Process a received CAN frame.
+ * 
+ * This function processes a received CAN frame, updates the global time, 
+ * and handles the data based on the slot ID. It also calculates the time 
+ * to the next entry and sets a timer interrupt for that time.
+ * 
+ * When a reference frame is received, the node is activated,
+ * and the local schedule is reset.
+ * 
+ * If no reference fram has been received for the duration
+ * of the global schedule, clock synchronisation is performed
+ * using the fault-tolerant average error.
+ * 
+ * @param gttcan The GTTCAN instance.
+ * @param can_frame_id_field The ID field of the received CAN frame.
+ * @param data The data of the received CAN frame.
+ */
 void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_t data) {
     gttcan->action_time -= gttcan->state_correction;
     uint16_t slotID = can_frame_id_field & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
@@ -126,6 +162,17 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
     }
 }
 
+/**
+ * @brief Transmit the next frame in the GTTCAN schedule.
+ * 
+ * This function checks if the node is active, and if so,
+ * transmits the next frame in the local schedule.
+ * It also calculates the time to the next entry and
+ * runs the callback function to set a timer interrupt
+ * for that point in time.
+ * 
+ * @param gttcan The GTTCAN instance.
+ */
 void GTTCAN_transmit_next_frame(gttcan_t * gttcan) 
 {
     // Check Node is active
@@ -157,6 +204,15 @@ void GTTCAN_transmit_next_frame(gttcan_t * gttcan)
     gttcan->transmit_callback(can_frame_header, data, gttcan->context_pointer);
 }
 
+/**
+ * @brief Start the GTTCAN instance.
+ * 
+ * This function should only ever be called on master.
+ * It resets the node to the start of the schedule,
+ * activates the node, and sends the first message in the schedule.
+ * 
+ * @param gttcan The GTTCAN instance.
+ */
 void GTTCAN_start(gttcan_t * gttcan) // Should only ever be called on master
 {
     gttcan->localScheduleIndex = 0; // reset node to start of schedule.
@@ -164,6 +220,15 @@ void GTTCAN_start(gttcan_t * gttcan) // Should only ever be called on master
     GTTCAN_transmit_next_frame(gttcan); // send first message in schedule - shoule be start of sxhedule frame for master
 }
 
+/**
+ * @brief Get the number of slots to the next transmit.
+ * 
+ * This function calculates the number of slots to the next transmit slot in the schedule.
+ * 
+ * @param gttcan The GTTCAN instance.
+ * @param currentScheduleIndex The current index in the schedule.
+ * @return The number of slots to the next transmit.
+ */
 uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t * gttcan, uint16_t currentScheduleIndex)
 {
     uint16_t nextTransmitIndex = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
@@ -172,6 +237,15 @@ uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t * gttcan, uint16_t currentSc
         : nextTransmitIndex - currentScheduleIndex;
 }
 
+/**
+ * @brief Get the number of slots since the last transmit.
+ * 
+ * This function calculates the number of slots since the last transmit in the schedule.
+ * 
+ * @param gttcan The GTTCAN instance.
+ * @param currentScheduleIndex The current index in the schedule.
+ * @return The number of slots since the last transmit.
+ */
 uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t currentScheduleIndex) 
 {
     if (!gttcan->transmitted) return currentScheduleIndex;
