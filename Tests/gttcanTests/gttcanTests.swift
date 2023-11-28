@@ -4,6 +4,18 @@ import XCTest
 private let testWBName = "test-gttcan"
 
 final class gttcanTests: XCTestCase {
+
+    final class CallbackData<T> {
+        var callCount = 0
+
+        var data: T?
+        
+        var called: Bool {
+            callCount > 0
+        }
+
+    }
+
     var ttcanptr = UnsafeMutablePointer<gttcan_t>.allocate(capacity: 1)
 
     static let localNode = UInt8(1)
@@ -111,6 +123,50 @@ final class gttcanTests: XCTestCase {
         XCTAssertEqual(ttcan.lower_outlier, -1)
         XCTAssertEqual(ttcan.upper_outlier, -1)
     }
+
+    func testTransmitNotActive() {
+        XCTAssertFalse(ttcanptr.pointee.isActive)
+        XCTAssertFalse(ttcanptr.pointee.transmitted)
+        GTTCAN_transmit_next_frame(ttcanptr)
+        XCTAssertFalse(ttcanptr.pointee.isActive)
+        XCTAssertFalse(ttcanptr.pointee.transmitted)
+    }
+
+    func testTransmitCallsReadValue() {
+        let callData = CallbackData<UInt64>()
+        ttcanptr.pointee.isActive = true
+        ttcanptr.pointee.context_pointer = Unmanaged.passUnretained(callData).toOpaque()
+        ttcanptr.pointee.localScheduleIndex = 1
+        ttcanptr.pointee.localScheduleSlotID.1 = 10
+        ttcanptr.pointee.localScheduleDataID.1 = 10
+        ttcanptr.pointee.read_value = { id, context in
+            guard
+                let callData = context.map({ Unmanaged<CallbackData<UInt64>>.fromOpaque($0).takeUnretainedValue() })
+            else {
+                XCTFail("Context is nil")
+                return 0
+            }
+            callData.callCount += 1
+            XCTAssertEqual(id, 10)
+            return 12
+        }
+        ttcanptr.pointee.transmit_callback = { _, data, context in
+            guard
+                let callData = context.map({ Unmanaged<CallbackData<UInt64>>.fromOpaque($0).takeUnretainedValue() })
+            else {
+                XCTFail("Context is nil")
+                return
+            }
+            callData.callCount += 1
+            XCTAssertEqual(data, 12)
+            callData.data = data
+        }
+        GTTCAN_transmit_next_frame(ttcanptr)
+        XCTAssertTrue(callData.called)
+        XCTAssertEqual(callData.callCount, 2)
+        XCTAssertEqual(callData.data, 12)
+    }
+
 }
 
 private func scheduleIndex(_ slot: Int) -> UInt32 {
