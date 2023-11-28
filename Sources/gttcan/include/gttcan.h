@@ -65,7 +65,7 @@ typedef struct gttcan_s {
 
 extern gttcan_t gttcan;
 
-void GTTCAN_init(gttcan_t *, uint8_t, uint32_t, uint8_t, transmit_callback_fp, set_timer_int_callback_fp, read_value_fp, write_value_fp, void *);
+void GTTCAN_init(gttcan_t *, uint8_t, uint32_t, uint16_t, transmit_callback_fp, set_timer_int_callback_fp, read_value_fp, write_value_fp, void *);
 void GTTCAN_process_frame(gttcan_t *, uint32_t, uint64_t);
 void GTTCAN_transmit_next_frame(gttcan_t *);
 void GTTCAN_start(gttcan_t *);

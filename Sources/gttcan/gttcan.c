@@ -10,7 +10,7 @@ static uint32_t GTTCAN_create_entry(uint8_t id, uint16_t dataslot) {
 void GTTCAN_init(gttcan_t *gttcan,
                 uint8_t localNodeId,
                 uint32_t slotduration, 
-                uint8_t globalScheduleLength, 
+                uint16_t globalScheduleLength, 
                 transmit_callback_fp transmit_callback,
                 set_timer_int_callback_fp set_timer_int_callback,
                 read_value_fp read_value,
@@ -111,7 +111,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
         return;
     }
 
-    if (gttcan->slots_accumulated >= gttcan->globalScheduleLength && error > gttcan->lower_outlier && error < gttcan->upper_outlier)
+    if (gttcan->slots_accumulated >= gttcan->globalScheduleLength)
     {
         gttcan->error_offset = GTTCAN_fta(gttcan);
         //gttcan->slotduration -= gttcan->error_offset; TODO: add this back in
@@ -121,7 +121,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
         // TODO: this should never happen, so we should signal the error, so the system can reset
         while (state_correction > timeToNextEntry)
             timeToNextEntry += gttcan->globalScheduleLength * gttcan->slotduration;
-        int32_t corrected_time_to_next_entry = timeToNextEntry - state_correction;
+        int32_t corrected_time_to_next_entry = timeToNextEntry + state_correction;
         gttcan->set_timer_int_callback(corrected_time_to_next_entry, gttcan->context_pointer);
     }
 }
