@@ -21,6 +21,7 @@ let package = Package(
                     "-Wno-undef",
                     "-Wno-long-long",
                     "-Wno-c++98-compat-pedantic",
+                    "-Wno-declaration-after-statement",
                     "-Wno-disabled-macro-expansion",
                     "-Wno-weak-vtables",
                     "-Wno-padded",
