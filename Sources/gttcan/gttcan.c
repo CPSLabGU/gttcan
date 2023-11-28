@@ -75,9 +75,9 @@ void GTTCAN_init(gttcan_t *gttcan,
 void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_t data) {
     gttcan->action_time -= gttcan->state_correction;
     uint16_t slotID = can_frame_id_field & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
-    uint16_t scheduleIndex = (can_frame_id_field >> 14) & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
+    uint16_t globalScheduleIndex = (can_frame_id_field >> 14) & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
    
-    int32_t slot_since_last = GTTCAN_get_slots_since_last_transmit(gttcan, scheduleIndex);
+    int32_t slot_since_last = GTTCAN_get_slots_since_last_transmit(gttcan, globalScheduleIndex);
     int32_t expected_time = slot_since_last * gttcan->slotduration;
     int32_t error = expected_time - gttcan->action_time; // positive if we received the frame earlier than expected
 
@@ -85,25 +85,20 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
 
     if(slotID == NETWORK_TIME_SLOT) 
     {  // If Reference Frame
-        data+=GTTCAN_DEFAULT_SLOT_OFFSET; // Add 150us offset for transmission time - not exact because of stuffing bits, but gets it close
-        // Update global time using Data && 0x3FFFFFFFFFFFFFFF
-        gttcan->write_value(NETWORK_TIME_SLOT, (data & 0x3FFFFFFFFFFFFFFF), gttcan->context_pointer);
-        if ((data >> 63) == 1) 
+        if (data & 0x8000000000000000ULL)
         { // If Start-of-schedule frame
             gttcan->isActive = true; // Activate node (if not already)
             gttcan->localScheduleIndex = 0;
-            gttcan->error_offset = GTTCAN_fta(gttcan);
-            
-            //gttcan->slotduration -= gttcan->error_offset; TODO: add this back in
-            uint32_t timeToFirstEntry = gttcan->localScheduleSlotID[gttcan->localScheduleIndex] * gttcan->slotduration;
-            gttcan->state_correction = 0;
-            gttcan->set_timer_int_callback(timeToFirstEntry, gttcan->context_pointer);
-        } 
-        else 
-        { // else normal reference frame 
-            // TODO: Move above 'time' calculation to occur on any reference frame (not just start of schedule).
-            // Calculation will need to be updated as per re-calibration
         }
+        data+=GTTCAN_DEFAULT_SLOT_OFFSET; // Add 150us offset for transmission time - not exact because of stuffing bits, but gets it close
+        // Update global time using Data && 0x3FFFFFFFFFFFFFFF
+        gttcan->write_value(NETWORK_TIME_SLOT, (data & 0x3FFFFFFFFFFFFFFFULL), gttcan->context_pointer);
+        gttcan->error_offset = GTTCAN_fta(gttcan);
+        //gttcan->slotduration -= gttcan->error_offset; TODO: add this back in
+        uint32_t slotsToNextEntry = GTTCAN_get_slots_to_next_transmit(gttcan, globalScheduleIndex);
+        uint32_t timeToNextEntry = slotsToNextEntry * gttcan->slotduration;
+        gttcan->state_correction = 0;
+        gttcan->set_timer_int_callback(timeToNextEntry, gttcan->context_pointer);
     } // Else if Normal message (id between 8 and 2^numIdBits-1), slotID between 1 and WBSIZE-1) 
     else if (slotID >=1) 
     {
@@ -115,20 +110,12 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
         // Error - invalid frame recieved
         return;
     }
+
     if (gttcan->slots_accumulated >= gttcan->globalScheduleLength && error > gttcan->lower_outlier && error < gttcan->upper_outlier)
     {
         gttcan->error_offset = GTTCAN_fta(gttcan);
         //gttcan->slotduration -= gttcan->error_offset; TODO: add this back in
-        uint16_t nextTransmitSlot = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
-        int32_t slotsToNextEntry = 0;
-        if (scheduleIndex < nextTransmitSlot) 
-        {
-            slotsToNextEntry = nextTransmitSlot - scheduleIndex;
-        }
-        else
-        {
-            slotsToNextEntry = gttcan->globalScheduleLength - scheduleIndex + nextTransmitSlot;
-        }
+        int32_t slotsToNextEntry = GTTCAN_get_slots_to_next_transmit(gttcan, globalScheduleIndex);
         int32_t timeToNextEntry = slotsToNextEntry * gttcan->slotduration;
         int32_t state_correction = gttcan->error_offset * slotsToNextEntry - (error - gttcan->error_offset);
         // TODO: this should never happen, so we should signal the error, so the system can reset
@@ -156,47 +143,45 @@ void GTTCAN_transmit_next_frame(gttcan_t * gttcan)
         data = data | 0x8000000000000000; // set MSB to 1 (we may need to clear 62nd bit for TTCan compatibility)
     }
     uint32_t can_frame_header = ((uint32_t)globalScheduleIndex) << 14 | dataID;
+
+    gttcan->localScheduleIndex++; // move to next entry
+    // if end of local schedule
+    if(gttcan->localScheduleIndex == gttcan->localScheduleLength)
+        gttcan->localScheduleIndex = 0; //reset
+
+    uint16_t slotsToNextEntry = GTTCAN_get_slots_to_next_transmit(gttcan, globalScheduleIndex);
+    uint32_t timeToNextEntry = slotsToNextEntry * gttcan->slotduration;
+    gttcan->set_timer_int_callback(timeToNextEntry, gttcan->context_pointer);
+    gttcan->state_correction = 0;
+
     gttcan->transmit_callback(can_frame_header, data, gttcan->context_pointer);
-    // If next not end of local schedule
-    if(gttcan->localScheduleIndex < gttcan->localScheduleLength-1) 
-    {
-        gttcan->localScheduleIndex++;
-        int32_t slotsToNextEntry = (gttcan->localScheduleSlotID[gttcan->localScheduleIndex]) - globalScheduleIndex;
-        uint32_t timeToNextEntry = slotsToNextEntry * gttcan->slotduration;
-        gttcan->set_timer_int_callback(timeToNextEntry, gttcan->context_pointer);
-        gttcan->state_correction = 0;
-    }
-    else 
-    {
-        uint32_t slotsRemainingInSchedule = gttcan->globalScheduleLength - globalScheduleIndex;
-        gttcan->localScheduleIndex = 0; // Reset local schedule index
-        // calculate timer for first entry in next schedule round 
-        uint32_t slotsToFirstEntry = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
-        // (in case master misses start of schedule, we should still transmit on schedule). 
-        // This timer will be re-calculated if we receive a start of schedule frame
-        int32_t slotsToNextEntry = slotsRemainingInSchedule + slotsToFirstEntry;
-        uint32_t timeToNextEntry = slotsToNextEntry * gttcan->slotduration;
-        gttcan->set_timer_int_callback(timeToNextEntry, gttcan->context_pointer);
-        gttcan->state_correction = 0;
-    }
 }
 
-void GTTCAN_start(gttcan_t * gttcan) 
+void GTTCAN_start(gttcan_t * gttcan) // Should only ever be called on master
 {
     gttcan->localScheduleIndex = 0; // reset node to start of schedule.
     gttcan->isActive = true; // activate this node
     GTTCAN_transmit_next_frame(gttcan); // send first message in schedule - shoule be start of sxhedule frame for master
 }
 
+uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t * gttcan, uint16_t currentScheduleIndex)
+{
+    uint16_t nextTransmitIndex = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
+    return currentScheduleIndex >= nextTransmitIndex
+        ? gttcan->globalScheduleLength - currentScheduleIndex + nextTransmitIndex
+        : nextTransmitIndex - currentScheduleIndex;
+}
+
 uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t currentScheduleIndex) 
 {
     if (!gttcan->transmitted) return currentScheduleIndex;
-    const uint16_t lastTransmitIndex = gttcan->localScheduleIndex > 0
-        ? (uint16_t) (gttcan->localSchedule[gttcan->localScheduleIndex - 1] >> 16)
-        : (uint16_t) (gttcan->localSchedule[gttcan->localScheduleLength - 1] >> 16);
-    return currentScheduleIndex > lastTransmitIndex
-        ? currentScheduleIndex - lastTransmitIndex
-        : (gttcan->globalScheduleLength - lastTransmitIndex) + currentScheduleIndex;
+
+    const uint16_t lastTransmitIndex = gttcan->localScheduleIndex > 0 // if we are not at the first entry in our schedule
+        ? gttcan->localScheduleSlotID[gttcan->localScheduleIndex - 1] // last transmit index was the previous entry in local schedule
+        : gttcan->localScheduleSlotID[gttcan->localScheduleLength - 1]; // else last transmit index is last entry in local schedule
+    return currentScheduleIndex > lastTransmitIndex // if the current schedule position is ahead of the last transmit index
+        ? currentScheduleIndex - lastTransmitIndex // last transmission was previous in the same schedule round
+        : (gttcan->globalScheduleLength - lastTransmitIndex) + currentScheduleIndex; // else last transmission  was in the previous schedule round
 }
 
 /// @brief Return the fault-tolerant average error.

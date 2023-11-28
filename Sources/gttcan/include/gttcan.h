@@ -71,7 +71,8 @@ void GTTCAN_transmit_next_frame(gttcan_t *);
 void GTTCAN_start(gttcan_t *);
 void GTTCAN_accumulate_error(gttcan_t *, int32_t);
 int32_t GTTCAN_fta(gttcan_t *);
-uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t n);
+uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t *, uint16_t);
+uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t *, uint16_t);
 
 #ifdef __cplusplus
 }; // extern "C"
