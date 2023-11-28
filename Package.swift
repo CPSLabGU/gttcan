@@ -17,15 +17,17 @@ let package = Package(
             dependencies: [],
             cSettings: [
                 .unsafeFlags([
-                    "-Wall",
-                    "-Werror",
-                    "-Wextra",
-                    "-Wpedantic",
-                    "-Wsign-conversion",
-                    "-Wpointer-arith",
-                    "-Wcast-qual",
-                    "-Wstrict-prototypes",
-                    "-Wmissing-prototypes"
+                    "-Weverything",
+                    "-Wno-undef",
+                    "-Wno-long-long",
+                    "-Wno-c++98-compat-pedantic",
+                    "-Wno-disabled-macro-expansion",
+                    "-Wno-weak-vtables",
+                    "-Wno-padded",
+                    "-Wno-unknown-pragmas",
+                    "-Wno-pedantic",
+                    "-Wno-unknown-warning-option",
+                    "-Wno-documentation-unknown-command"
                 ])]),
         .testTarget(
             name: "gttcanTests",
