@@ -185,6 +185,10 @@ void GTTCAN_transmit_next_frame(gttcan_t * gttcan)
     uint16_t globalScheduleIndex = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
     uint16_t dataID = gttcan->localScheduleDataID[gttcan->localScheduleIndex];
     uint64_t data = gttcan->read_value(dataID, gttcan->context_pointer);
+    if(dataID == NETWORK_TIME_SLOT) // this is a reference frame
+    {
+        gttcan->error_offset = GTTCAN_fta(gttcan); // reset error
+    }
     if(globalScheduleIndex == 0U) // if this is a start of schedule
     { 
         data = data | 0x8000000000000000; // set MSB to 1 (we may need to clear 62nd bit for TTCan compatibility)
