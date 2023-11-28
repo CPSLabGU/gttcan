@@ -14,7 +14,19 @@ let package = Package(
     targets: [
         .target(
             name: "gttcan",
-            dependencies: []),
+            dependencies: [],
+            cSettings: [
+                .unsafeFlags([
+                    "-Wall",
+                    "-Werror",
+                    "-Wextra",
+                    "-Wpedantic",
+                    "-Wsign-conversion",
+                    "-Wpointer-arith",
+                    "-Wcast-qual",
+                    "-Wstrict-prototypes",
+                    "-Wmissing-prototypes"
+                ])]),
         .testTarget(
             name: "gttcanTests",
             dependencies: ["gttcan"]),
