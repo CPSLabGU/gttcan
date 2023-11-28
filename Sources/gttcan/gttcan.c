@@ -5,7 +5,6 @@
 #include "gttcan.h"
 #include "slot_defs.h"
 
-/* inline */
 static uint32_t GTTCAN_create_entry(uint8_t id, uint16_t dataslot) {
     return ((uint32_t)id << 16) | dataslot;
 }
