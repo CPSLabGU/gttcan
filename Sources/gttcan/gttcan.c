@@ -95,7 +95,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
             gttcan->error_offset = GTTCAN_fta(gttcan);
             
             //gttcan->slotduration -= gttcan->error_offset; TODO: add this back in
-            uint32_t timeToFirstEntry = gttcan->localScheduleSlot[gttcan->localScheduleIndex] * gttcan->slotduration;
+            uint32_t timeToFirstEntry = gttcan->localScheduleSlotID[gttcan->localScheduleIndex] * gttcan->slotduration;
             gttcan->state_correction = 0;
             gttcan->set_timer_int_callback(timeToFirstEntry, gttcan->context_pointer);
         } 
@@ -119,7 +119,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
     {
         gttcan->error_offset = GTTCAN_fta(gttcan);
         //gttcan->slotduration -= gttcan->error_offset; TODO: add this back in
-        uint16_t nextTransmitSlot = gttcan->localScheduleSlot[gttcan->localScheduleIndex];
+        uint16_t nextTransmitSlot = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
         int32_t slotsToNextEntry = 0;
         if (scheduleIndex < nextTransmitSlot) 
         {
