@@ -1,4 +1,4 @@
-name: Ubuntu 22.04 Swift Debug CI
+name: Linting
 
 on:
   push:
