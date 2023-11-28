@@ -35,7 +35,7 @@ jobs:
       #  run: sed -i 's/git@github.com:/https:\/\/${{ secrets.ACCESS_TOKEN }}@github.com\//g' Package.swift
 
       - name: Run tests
-        run: swift test --enable-code-coverage
+        run: swift test --enable-code-coverage -Xcc --coverage -Xcc -fprofile-instr-generate -Xcc -fcoverage-mapping
 
       - name: Coverage Test
         uses: mattpolzin/swift-codecov-action@0.7.3
