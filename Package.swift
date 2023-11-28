@@ -10,7 +10,6 @@ let package = Package(
             targets: ["gttcan"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.1.0"),
     ],
     targets: [
         .target(
