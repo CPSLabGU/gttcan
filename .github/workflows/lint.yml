@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Install cppcheck
-        run: apt-get install cppcheck
+        run: sudo apt-get install cppcheck
 
       - name: Setup SSH Key
         run: | 
