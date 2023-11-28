@@ -190,7 +190,7 @@ void GTTCAN_transmit_next_frame(gttcan_t * gttcan)
     }
     if(globalScheduleIndex == 0U) // if this is a start of schedule
     { 
-        data = data | 0x8000000000000000; // set MSB to 1 (we may need to clear 62nd bit for TTCan compatibility)
+        data = data | 0x8000000000000000U; // set MSB to 1 (we may need to clear 62nd bit for TTCan compatibility)
     }
     uint32_t can_frame_header = ((uint32_t)globalScheduleIndex) << 14 | dataID;
 
