@@ -32,4 +32,6 @@ jobs:
       #  run: sed -i 's/git@github.com:/https:\/\/${{ secrets.ACCESS_TOKEN }}@github.com\//g' Package.swift
 
       - name: CPPCheck
-        run: cppcheck --project=cfg.cppcheck --error-exitcode=2 --enable=warning --enable=style --enable=performance --enable=portability --inline-suppr
+        run: |
+          mkdir cfg-cppcheck-build-dir
+          cppcheck --project=cfg.cppcheck --error-exitcode=2 --enable=warning --enable=style --enable=performance --enable=portability --inline-suppr
