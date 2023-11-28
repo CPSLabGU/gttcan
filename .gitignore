@@ -2,6 +2,8 @@
 /.build
 /Packages
 /*.xcodeproj
+/libgttcan/
+/cfg-cppcheck-build-dir
 xcuserdata/
 DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
