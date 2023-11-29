@@ -309,6 +309,7 @@ int32_t GTTCAN_fta(gttcan_t *gttcan)
         default: // we have enough error samples to do fault-tolerant averaging
             error = (gttcan->error_accumulator - gttcan->lower_outlier - gttcan->upper_outlier) / ((int32_t)gttcan->slots_accumulated - 2);
             gttcan->state_correction = error * (int16_t)gttcan->slots_accumulated;
+            break;
     }
 
     gttcan->error_accumulator = 0;
