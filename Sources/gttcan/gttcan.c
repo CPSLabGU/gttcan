@@ -12,7 +12,7 @@ static uint32_t GTTCAN_create_entry(uint8_t id, uint16_t dataslot) {
 
 /**
  * @brief Initialize a GTTCAN instance.
- * 
+ *
  * @param gttcan The GTTCAN instance to initialize.
  * @param localNodeId The local node ID.
  * @param slotduration The duration of a slot.
@@ -24,14 +24,14 @@ static uint32_t GTTCAN_create_entry(uint8_t id, uint16_t dataslot) {
  * @param context_pointer The context pointer.
  */
 void GTTCAN_init(gttcan_t *gttcan,
-                uint8_t localNodeId,
-                uint32_t slotduration, 
-                uint16_t globalScheduleLength, 
-                transmit_callback_fp transmit_callback,
-                set_timer_int_callback_fp set_timer_int_callback,
-                read_value_fp read_value,
-                write_value_fp write_value,
-                void *context_pointer)
+                 uint8_t localNodeId,
+                 uint32_t slotduration,
+                 uint16_t globalScheduleLength,
+                 transmit_callback_fp transmit_callback,
+                 set_timer_int_callback_fp set_timer_int_callback,
+                 read_value_fp read_value,
+                 write_value_fp write_value,
+                 void *context_pointer)
 {
     gttcan->globalScheduleLength = globalScheduleLength;
     gttcan->slotduration = slotduration;
@@ -54,20 +54,20 @@ void GTTCAN_init(gttcan_t *gttcan,
     gttcan->slots[2] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
     gttcan->slots[3] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);
     /*
-    gttcan->slots[1] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
-    gttcan->slots[2] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);
-    gttcan->slots[3] = GTTCAN_create_entry(10, NODE10_NUM_RECEIVED_FRAMES);
-    gttcan->slots[4] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
-    gttcan->slots[5] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);
-    gttcan->slots[6] = GTTCAN_create_entry(10, NODE10_NUM_RECEIVED_FRAMES);
-    gttcan->slots[7] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
-    gttcan->slots[8] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);
-    gttcan->slots[9] = GTTCAN_create_entry(10, NODE10_NUM_RECEIVED_FRAMES);
-    gttcan->slots[10] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
-    gttcan->slots[11] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);
-    gttcan->slots[12] = GTTCAN_create_entry(10, NODE10_NUM_RECEIVED_FRAMES);
-    gttcan->slots[13] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
-    gttcan->slots[14] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);*/
+     gttcan->slots[1] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
+     gttcan->slots[2] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);
+     gttcan->slots[3] = GTTCAN_create_entry(10, NODE10_NUM_RECEIVED_FRAMES);
+     gttcan->slots[4] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
+     gttcan->slots[5] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);
+     gttcan->slots[6] = GTTCAN_create_entry(10, NODE10_NUM_RECEIVED_FRAMES);
+     gttcan->slots[7] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
+     gttcan->slots[8] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);
+     gttcan->slots[9] = GTTCAN_create_entry(10, NODE10_NUM_RECEIVED_FRAMES);
+     gttcan->slots[10] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
+     gttcan->slots[11] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);
+     gttcan->slots[12] = GTTCAN_create_entry(10, NODE10_NUM_RECEIVED_FRAMES);
+     gttcan->slots[13] = GTTCAN_create_entry(8, NODE8_NUM_RECEIVED_FRAMES);
+     gttcan->slots[14] = GTTCAN_create_entry(9, NODE9_NUM_RECEIVED_FRAMES);*/
 
     // Create Local Schedule
     gttcan->localScheduleIndex = 0;
@@ -93,18 +93,18 @@ void GTTCAN_init(gttcan_t *gttcan,
 
 /**
  * @brief Process a received CAN frame.
- * 
- * This function processes a received CAN frame, updates the global time, 
- * and handles the data based on the slot ID. It also calculates the time 
+ *
+ * This function processes a received CAN frame, updates the global time,
+ * and handles the data based on the slot ID. It also calculates the time
  * to the next entry and sets a timer interrupt for that time.
- * 
+ *
  * When a reference frame is received, the node is activated,
  * and the local schedule is reset.
- * 
+ *
  * If no reference fram has been received for the duration
  * of the global schedule, clock synchronisation is performed
  * using the fault-tolerant average error.
- * 
+ *
  * @param gttcan The GTTCAN instance.
  * @param can_frame_id_field The ID field of the received CAN frame.
  * @param received_data The data of the received CAN frame.
@@ -142,9 +142,9 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, const u
     }
     else if (slotID >= 1U) // Else if Normal message (id between 8 and 2^numIdBits-1), slotID between 1 and WBSIZE-1)
     {
-            // Update datastructure (whiteboard) with data in slot slotID
-            gttcan->write_value(slotID, data, gttcan->context_pointer);
-    } 
+        // Update datastructure (whiteboard) with data in slot slotID
+        gttcan->write_value(slotID, data, gttcan->context_pointer);
+    }
     else // FIXME: not reached, may need a different check above!
     {
         // Error - invalid frame recieved
@@ -170,16 +170,16 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, const u
 
 /**
  * @brief Transmit the next frame in the GTTCAN schedule.
- * 
+ *
  * This function checks if the node is active, and if so,
  * transmits the next frame in the local schedule.
  * It also calculates the time to the next entry and
  * runs the callback function to set a timer interrupt
  * for that point in time.
- * 
+ *
  * @param gttcan The GTTCAN instance.
  */
-void GTTCAN_transmit_next_frame(gttcan_t *gttcan)
+void GTTCAN_transmit_next_frame(gttcan_t *gttcan) // cppcheck-suppress misra-c2012-8.7
 {
     // Check Node is active
     if (!gttcan->isActive)
@@ -219,11 +219,11 @@ void GTTCAN_transmit_next_frame(gttcan_t *gttcan)
 
 /**
  * @brief Start the GTTCAN instance.
- * 
+ *
  * This function should only ever be called on master.
  * It resets the node to the start of the schedule,
  * activates the node, and sends the first message in the schedule.
- * 
+ *
  * @param gttcan The GTTCAN instance.
  */
 void GTTCAN_start(gttcan_t *gttcan)
@@ -235,31 +235,31 @@ void GTTCAN_start(gttcan_t *gttcan)
 
 /**
  * @brief Get the number of slots to the next transmit.
- * 
+ *
  * This function calculates the number of slots to the next transmit slot in the schedule.
- * 
+ *
  * @param gttcan The GTTCAN instance.
  * @param currentScheduleIndex The current index in the schedule.
  * @return The number of slots to the next transmit.
  */
-uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t *gttcan, uint16_t currentScheduleIndex)
+uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t *gttcan, uint16_t currentScheduleIndex) // cppcheck-suppress misra-c2012-8.7
 {
     uint16_t nextTransmitIndex = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
     return (currentScheduleIndex >= nextTransmitIndex) ?
-        (gttcan->globalScheduleLength - currentScheduleIndex + nextTransmitIndex) :
-        (nextTransmitIndex - currentScheduleIndex);
+    (gttcan->globalScheduleLength - currentScheduleIndex + nextTransmitIndex) :
+    (nextTransmitIndex - currentScheduleIndex);
 }
 
 /**
  * @brief Get the number of slots since the last transmit.
- * 
+ *
  * This function calculates the number of slots since the last transmit in the schedule.
- * 
+ *
  * @param gttcan The GTTCAN instance.
  * @param currentScheduleIndex The current index in the schedule.
  * @return The number of slots since the last transmit.
  */
-uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t currentScheduleIndex) 
+uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t currentScheduleIndex) // cppcheck-suppress misra-c2012-8.7
 {
     if (!gttcan->transmitted)
     {
@@ -267,8 +267,8 @@ uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t curren
     }
 
     const uint16_t lastTransmitIndex = (gttcan->localScheduleIndex > 0U) ? // if we are not at the first entry in our schedule
-        (gttcan->localScheduleSlotID[gttcan->localScheduleIndex - 1U]) : // last transmit index was the previous entry in local schedule
-        (gttcan->localScheduleSlotID[gttcan->localScheduleLength - 1U]); // else last transmit index is last entry in local schedule
+    (gttcan->localScheduleSlotID[gttcan->localScheduleIndex - 1U]) : // last transmit index was the previous entry in local schedule
+    (gttcan->localScheduleSlotID[gttcan->localScheduleLength - 1U]); // else last transmit index is last entry in local schedule
     // if the current schedule position is ahead of the last transmit index
     if (currentScheduleIndex > lastTransmitIndex)
     {
@@ -296,7 +296,7 @@ uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t curren
 int32_t GTTCAN_fta(gttcan_t *gttcan)
 {
     int32_t error;
-    switch (gttcan->slots_accumulated) 
+    switch (gttcan->slots_accumulated)
     {
         case 0:
             error = 0;
@@ -331,7 +331,7 @@ int32_t GTTCAN_fta(gttcan_t *gttcan)
  * @param gttcan The gttcan instance to operate on.
  * @param error  The error to accumulate.
  */
-void GTTCAN_accumulate_error(gttcan_t *gttcan, int32_t error)
+void GTTCAN_accumulate_error(gttcan_t *gttcan, int32_t error) // cppcheck-suppress misra-c2012-8.7
 {
     if(!gttcan->transmitted)
     {
