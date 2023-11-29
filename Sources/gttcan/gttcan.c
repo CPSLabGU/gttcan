@@ -121,7 +121,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
     // If Reference Frame
     if (slotID == (uint16_t)NETWORK_TIME_SLOT)
     {
-        if (data & 0x8000000000000000ULL)   // If Start-of-schedule frame
+        if ((data & 0x8000000000000000ULL) != 0U) // If Start-of-schedule frame
         {
             gttcan->isActive = true;    // Activate node (if not already)
             gttcan->localScheduleIndex = 0;
