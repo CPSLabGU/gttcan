@@ -283,8 +283,9 @@ int32_t GTTCAN_fta(gttcan_t *gttcan)
     int32_t error;
     switch (gttcan->slots_accumulated) 
     {
-        case 0: 
-            gttcan->state_correction = error = 0; 
+        case 0:
+            error = 0;
+            gttcan->state_correction = 0;
             break; // no errors accumulated
         case 1: // not enough errors to run an FTA, so
         case 2: // degrade to an arithmetic average
