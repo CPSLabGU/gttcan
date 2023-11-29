@@ -72,14 +72,17 @@ void GTTCAN_init(gttcan_t *gttcan,
     gttcan->localScheduleIndex = 0;
     gttcan->localScheduleLength = 0;
     uint16_t i = 0;
-    for(i = 0; i < globalScheduleLength; i++) {
-        uint8_t nodeid = (gttcan->slots[i] >> 16) & 0XFF;
-        uint16_t dataid = gttcan->slots[i] & 0xFFFF;
-        if(nodeid == localNodeId) {
+    for (i = 0; i < globalScheduleLength; i++)
+    {
+        uint8_t nodeid = (uint8_t)((uint32_t)(gttcan->slots[i] >> 16) & 0XFFU);
+        uint16_t dataid = (uint16_t)(gttcan->slots[i] & 0xFFFFU);
+        if (nodeid == localNodeId)
+        {
             gttcan->localScheduleSlotID[gttcan->localScheduleLength] = i;
             gttcan->localScheduleDataID[gttcan->localScheduleLength] = dataid;
             gttcan->localScheduleLength++;
-            if(gttcan->localScheduleLength >= GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH) {
+            if (gttcan->localScheduleLength >= (uint8_t)GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH)
+            {
                 i = globalScheduleLength; // dont add any more entries
             }
         }
@@ -109,23 +112,24 @@ void GTTCAN_init(gttcan_t *gttcan,
 void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_t data)
 {
     gttcan->action_time -= (uint32_t)gttcan->state_correction;
-    uint16_t slotID = can_frame_id_field & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
-    uint16_t globalScheduleIndex = (can_frame_id_field >> 14) & 0x3FFF; // TODO: CHECK IF THESE ARE VALID
-   
+    uint16_t slotID = (uint16_t)(can_frame_id_field & 0x3FFFU); // TODO: CHECK IF THESE ARE VALID
+    uint16_t globalScheduleIndex = (uint16_t)((can_frame_id_field >> 14) & 0x3FFFU); // TODO: CHECK IF THESE ARE VALID
+
     uint32_t slot_since_last = GTTCAN_get_slots_since_last_transmit(gttcan, globalScheduleIndex);
     uint32_t expected_time = slot_since_last * gttcan->slotduration;
     int32_t error = (int32_t)(expected_time - gttcan->action_time); // positive if we received the frame earlier than expected
 
     GTTCAN_accumulate_error(gttcan, error);
 
-    if(slotID == NETWORK_TIME_SLOT) 
-    {  // If Reference Frame
-        if (data & 0x8000000000000000ULL)
-        { // If Start-of-schedule frame
-            gttcan->isActive = true; // Activate node (if not already)
+    // If Reference Frame
+    if (slotID == (uint16_t)NETWORK_TIME_SLOT)
+    {
+        if (data & 0x8000000000000000ULL)   // If Start-of-schedule frame
+        {
+            gttcan->isActive = true;    // Activate node (if not already)
             gttcan->localScheduleIndex = 0;
         }
-        data+=GTTCAN_DEFAULT_SLOT_OFFSET; // Add 150us offset for transmission time - not exact because of stuffing bits, but gets it close
+        data += GTTCAN_DEFAULT_SLOT_OFFSET; // Add 150us offset for transmission time - not exact because of stuffing bits, but gets it close
         // Update global time using Data && 0x3FFFFFFFFFFFFFFF
         gttcan->write_value(NETWORK_TIME_SLOT, (data & 0x3FFFFFFFFFFFFFFFULL), gttcan->context_pointer);
         gttcan->error_offset = GTTCAN_fta(gttcan);
@@ -134,13 +138,13 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
         uint32_t timeToNextEntry = slotsToNextEntry * gttcan->slotduration;
         gttcan->state_correction = 0;
         gttcan->set_timer_int_callback(timeToNextEntry, gttcan->context_pointer);
-    } // Else if Normal message (id between 8 and 2^numIdBits-1), slotID between 1 and WBSIZE-1) 
-    else if (slotID >=1) 
+    }
+    else if (slotID >= 1U) // Else if Normal message (id between 8 and 2^numIdBits-1), slotID between 1 and WBSIZE-1)
     {
             // Update datastructure (whiteboard) with data in slot slotID
             gttcan->write_value(slotID, data, gttcan->context_pointer);
     } 
-    else 
+    else // FIXME: not reached, may need a different check above!
     {
         // Error - invalid frame recieved
         return;
@@ -150,13 +154,13 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
     {
         gttcan->error_offset = GTTCAN_fta(gttcan);
         //gttcan->slotduration -= gttcan->error_offset; TODO: add this back in
-        int32_t slotsToNextEntry = GTTCAN_get_slots_to_next_transmit(gttcan, globalScheduleIndex);
-        int32_t timeToNextEntry = slotsToNextEntry * (int32_t)gttcan->slotduration;
-        int32_t state_correction = gttcan->error_offset * slotsToNextEntry - (error - gttcan->error_offset);
+        uint32_t slotsToNextEntry = GTTCAN_get_slots_to_next_transmit(gttcan, globalScheduleIndex);
+        uint32_t timeToNextEntry = slotsToNextEntry * gttcan->slotduration;
+        int32_t state_correction = gttcan->error_offset * (int32_t)slotsToNextEntry - (error - gttcan->error_offset);
         // TODO: this should never happen, so we should signal the error, so the system can reset
-        while (-state_correction > timeToNextEntry)
+        while ((uint32_t)(-state_correction) > timeToNextEntry)
             timeToNextEntry += gttcan->globalScheduleLength * gttcan->slotduration;
-        uint32_t corrected_time_to_next_entry = (uint32_t)(timeToNextEntry + state_correction);
+        uint32_t corrected_time_to_next_entry = (uint32_t)((int32_t)timeToNextEntry + state_correction);
         gttcan->set_timer_int_callback(corrected_time_to_next_entry, gttcan->context_pointer);
     }
 }
@@ -184,13 +188,13 @@ void GTTCAN_transmit_next_frame(gttcan_t *gttcan)
     uint16_t globalScheduleIndex = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
     uint16_t dataID = gttcan->localScheduleDataID[gttcan->localScheduleIndex];
     uint64_t data = gttcan->read_value(dataID, gttcan->context_pointer);
-    if(dataID == NETWORK_TIME_SLOT) // this is a reference frame
+    if (dataID == (uint16_t)NETWORK_TIME_SLOT)  // this is a reference frame
     {
         gttcan->error_offset = GTTCAN_fta(gttcan); // reset error
     }
-    if(globalScheduleIndex == 0U) // if this is a start of schedule
-    { 
-        data = data | 0x8000000000000000U; // set MSB to 1 (we may need to clear 62nd bit for TTCan compatibility)
+    if (globalScheduleIndex == 0U) // if this is a start of schedule
+    {
+        data = data | 0x8000000000000000ULL; // set MSB to 1 (we may need to clear 62nd bit for TTCan compatibility)
     }
     uint32_t can_frame_header = ((uint32_t)globalScheduleIndex) << 14 | dataID;
 
@@ -253,9 +257,9 @@ uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t curren
 {
     if (!gttcan->transmitted) return currentScheduleIndex;
 
-    const uint16_t lastTransmitIndex = gttcan->localScheduleIndex > 0 // if we are not at the first entry in our schedule
-        ? gttcan->localScheduleSlotID[gttcan->localScheduleIndex - 1] // last transmit index was the previous entry in local schedule
-        : gttcan->localScheduleSlotID[gttcan->localScheduleLength - 1]; // else last transmit index is last entry in local schedule
+    const uint16_t lastTransmitIndex = gttcan->localScheduleIndex > 0U // if we are not at the first entry in our schedule
+        ? gttcan->localScheduleSlotID[gttcan->localScheduleIndex - 1U] // last transmit index was the previous entry in local schedule
+        : gttcan->localScheduleSlotID[gttcan->localScheduleLength - 1U]; // else last transmit index is last entry in local schedule
     return currentScheduleIndex > lastTransmitIndex // if the current schedule position is ahead of the last transmit index
         ? currentScheduleIndex - lastTransmitIndex // last transmission was previous in the same schedule round
         : (gttcan->globalScheduleLength - lastTransmitIndex) + currentScheduleIndex; // else last transmission  was in the previous schedule round
@@ -282,13 +286,13 @@ int32_t GTTCAN_fta(gttcan_t *gttcan)
             break; // no errors accumulated
         case 1: // not enough errors to run an FTA, so
         case 2: // degrade to an arithmetic average
-            error = gttcan->error_accumulator / gttcan->slots_accumulated;
+            error = gttcan->error_accumulator / (int16_t)gttcan->slots_accumulated;
             gttcan->state_correction = gttcan->error_accumulator;
             break;
 
         default: // we have enough error samples to do fault-tolerant averaging
-            error = (gttcan->error_accumulator - gttcan->lower_outlier - gttcan->upper_outlier) / (gttcan->slots_accumulated - 2);
-            gttcan->state_correction = error * gttcan->slots_accumulated;
+            error = (gttcan->error_accumulator - gttcan->lower_outlier - gttcan->upper_outlier) / (int16_t)(gttcan->slots_accumulated - 2U);
+            gttcan->state_correction = error * (int16_t)gttcan->slots_accumulated;
     }
 
     gttcan->error_accumulator = 0;

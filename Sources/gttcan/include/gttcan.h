@@ -17,9 +17,9 @@ extern "C" {
 #endif
 
 #ifdef STM32
-#define GTTCAN_DEFAULT_SLOT_OFFSET 1600
+#define GTTCAN_DEFAULT_SLOT_OFFSET 1600U
 #else
-#define GTTCAN_DEFAULT_SLOT_OFFSET 1480
+#define GTTCAN_DEFAULT_SLOT_OFFSET 1480U
 #endif
 
 typedef void (*transmit_callback_fp)(uint32_t, uint64_t, void*);
