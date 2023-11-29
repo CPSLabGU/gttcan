@@ -71,8 +71,7 @@ void GTTCAN_init(gttcan_t *gttcan,
     // Create Local Schedule
     gttcan->localScheduleIndex = 0;
     gttcan->localScheduleLength = 0;
-    uint16_t i = 0;
-    for (i = 0; i < globalScheduleLength; i++)
+    for (uint16_t i = 0; i < globalScheduleLength; i++)
     {
         uint8_t nodeid = (uint8_t)((uint32_t)(gttcan->slots[i] >> 16) & 0XFFU);
         uint16_t dataid = (uint16_t)(gttcan->slots[i] & 0xFFFFU);
@@ -82,9 +81,7 @@ void GTTCAN_init(gttcan_t *gttcan,
             gttcan->localScheduleDataID[gttcan->localScheduleLength] = dataid;
             gttcan->localScheduleLength++;
             if (gttcan->localScheduleLength >= (uint8_t)GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH)
-            {
-                i = globalScheduleLength; // dont add any more entries
-            }
+                break;
         }
     }
     // Reset the FTA
