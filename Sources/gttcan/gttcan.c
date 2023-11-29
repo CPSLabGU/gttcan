@@ -47,6 +47,7 @@ void GTTCAN_init(gttcan_t *gttcan,
     gttcan->write_value = write_value;
     gttcan->context_pointer = context_pointer;
 
+    // FIXME: the following hard-coded slot initialisations need to be removed
     // Create global schedule. This could be changed to whiteboard slots
     gttcan->slots[0] = GTTCAN_create_entry(1, NETWORK_TIME_SLOT); // Reference Frame from Time Master
     gttcan->slots[1] = GTTCAN_create_entry(10, NODE10_NUM_RECEIVED_FRAMES);
