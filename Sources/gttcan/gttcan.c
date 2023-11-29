@@ -117,7 +117,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
 
     uint32_t slot_since_last = GTTCAN_get_slots_since_last_transmit(gttcan, globalScheduleIndex);
     uint32_t expected_time = slot_since_last * gttcan->slotduration;
-    int32_t error = (int32_t)(expected_time - gttcan->action_time); // positive if we received the frame earlier than expected
+    int32_t error = (int32_t)expected_time - (int32_t)gttcan->action_time; // positive if we received the frame earlier than expected
 
     GTTCAN_accumulate_error(gttcan, error);
 
@@ -160,7 +160,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
         // TODO: this should never happen, so we should signal the error, so the system can reset
         while ((uint32_t)(-state_correction) > timeToNextEntry)
             timeToNextEntry += gttcan->globalScheduleLength * gttcan->slotduration;
-        uint32_t corrected_time_to_next_entry = (uint32_t)((int32_t)timeToNextEntry + state_correction);
+        uint32_t corrected_time_to_next_entry = timeToNextEntry + (uint32_t)state_correction;
         gttcan->set_timer_int_callback(corrected_time_to_next_entry, gttcan->context_pointer);
     }
 }
@@ -291,7 +291,7 @@ int32_t GTTCAN_fta(gttcan_t *gttcan)
             break;
 
         default: // we have enough error samples to do fault-tolerant averaging
-            error = (gttcan->error_accumulator - gttcan->lower_outlier - gttcan->upper_outlier) / (int16_t)(gttcan->slots_accumulated - 2U);
+            error = (gttcan->error_accumulator - gttcan->lower_outlier - gttcan->upper_outlier) / ((int32_t)gttcan->slots_accumulated - 2);
             gttcan->state_correction = error * (int16_t)gttcan->slots_accumulated;
     }
 
