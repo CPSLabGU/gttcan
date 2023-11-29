@@ -196,7 +196,7 @@ void GTTCAN_transmit_next_frame(gttcan_t *gttcan)
     {
         data = data | 0x8000000000000000ULL; // set MSB to 1 (we may need to clear 62nd bit for TTCan compatibility)
     }
-    uint32_t can_frame_header = ((uint32_t)globalScheduleIndex) << 14 | dataID;
+    uint32_t can_frame_header = ((uint32_t)globalScheduleIndex << 14) | dataID;
 
     gttcan->localScheduleIndex++; // move to next entry
     // if end of local schedule
@@ -239,9 +239,9 @@ void GTTCAN_start(gttcan_t *gttcan)
 uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t *gttcan, uint16_t currentScheduleIndex)
 {
     uint16_t nextTransmitIndex = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
-    return currentScheduleIndex >= nextTransmitIndex
-        ? gttcan->globalScheduleLength - currentScheduleIndex + nextTransmitIndex
-        : nextTransmitIndex - currentScheduleIndex;
+    return (currentScheduleIndex >= nextTransmitIndex) ?
+        (gttcan->globalScheduleLength - currentScheduleIndex + nextTransmitIndex) :
+        (nextTransmitIndex - currentScheduleIndex);
 }
 
 /**
@@ -257,12 +257,14 @@ uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t curren
 {
     if (!gttcan->transmitted) return currentScheduleIndex;
 
-    const uint16_t lastTransmitIndex = gttcan->localScheduleIndex > 0U // if we are not at the first entry in our schedule
-        ? gttcan->localScheduleSlotID[gttcan->localScheduleIndex - 1U] // last transmit index was the previous entry in local schedule
-        : gttcan->localScheduleSlotID[gttcan->localScheduleLength - 1U]; // else last transmit index is last entry in local schedule
-    return currentScheduleIndex > lastTransmitIndex // if the current schedule position is ahead of the last transmit index
-        ? currentScheduleIndex - lastTransmitIndex // last transmission was previous in the same schedule round
-        : (gttcan->globalScheduleLength - lastTransmitIndex) + currentScheduleIndex; // else last transmission  was in the previous schedule round
+    const uint16_t lastTransmitIndex = (gttcan->localScheduleIndex > 0U) ? // if we are not at the first entry in our schedule
+        (gttcan->localScheduleSlotID[gttcan->localScheduleIndex - 1U]) : // last transmit index was the previous entry in local schedule
+        (gttcan->localScheduleSlotID[gttcan->localScheduleLength - 1U]); // else last transmit index is last entry in local schedule
+    // if the current schedule position is ahead of the last transmit index
+    if (currentScheduleIndex > lastTransmitIndex)
+        return (currentScheduleIndex - lastTransmitIndex); // last transmission was previous in the same schedule round
+    else // last transmission  was in the previous schedule round
+        return ((gttcan->globalScheduleLength - lastTransmitIndex) + currentScheduleIndex);
 }
 
 /**
