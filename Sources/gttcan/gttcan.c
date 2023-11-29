@@ -144,7 +144,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
     else // FIXME: not reached, may need a different check above!
     {
         // Error - invalid frame recieved
-        return;
+        return; // cppcheck-suppress misra-c2012-15.5
     }
 
     if (gttcan->slots_accumulated >= gttcan->globalScheduleLength)
@@ -176,10 +176,8 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
 void GTTCAN_transmit_next_frame(gttcan_t *gttcan)
 {
     // Check Node is active
-    if (!gttcan->isActive) 
-    {
-        return;
-    }
+    if (!gttcan->isActive) return; // cppcheck-suppress misra-c2012-15.5
+
     gttcan->transmitted = true;
     // Transmit local schedule entry
     uint16_t globalScheduleIndex = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
@@ -252,6 +250,7 @@ uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t *gttcan, uint16_t currentSch
  */
 uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t currentScheduleIndex) 
 {
+    // cppcheck-suppress misra-c2012-15.5
     if (!gttcan->transmitted) return currentScheduleIndex;
 
     const uint16_t lastTransmitIndex = (gttcan->localScheduleIndex > 0U) ? // if we are not at the first entry in our schedule
@@ -259,9 +258,15 @@ uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t curren
         (gttcan->localScheduleSlotID[gttcan->localScheduleLength - 1U]); // else last transmit index is last entry in local schedule
     // if the current schedule position is ahead of the last transmit index
     if (currentScheduleIndex > lastTransmitIndex)
+    {
+        // cppcheck-suppress misra-c2012-15.5
         return (currentScheduleIndex - lastTransmitIndex); // last transmission was previous in the same schedule round
+    }
     else // last transmission  was in the previous schedule round
+    {
+        // cppcheck-suppress misra-c2012-15.5
         return ((gttcan->globalScheduleLength - lastTransmitIndex) + currentScheduleIndex);
+    }
 }
 
 /**
@@ -314,7 +319,9 @@ int32_t GTTCAN_fta(gttcan_t *gttcan)
  */
 void GTTCAN_accumulate_error(gttcan_t *gttcan, int32_t error)
 {
+    // cppcheck-suppress misra-c2012-15.5
     if(!gttcan->transmitted) return;
+
     gttcan->previous_accumulator = gttcan->error_accumulator;
     gttcan->error_accumulator += error;
 
