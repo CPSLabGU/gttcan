@@ -106,11 +106,12 @@ void GTTCAN_init(gttcan_t *gttcan,
  * 
  * @param gttcan The GTTCAN instance.
  * @param can_frame_id_field The ID field of the received CAN frame.
- * @param data The data of the received CAN frame.
+ * @param received_data The data of the received CAN frame.
  */
-void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_t data)
+void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, const uint64_t received_data)
 {
     gttcan->action_time -= (uint32_t)gttcan->state_correction;
+    uint64_t data = received_data;
     uint16_t slotID = (uint16_t)(can_frame_id_field & 0x3FFFU); // TODO: CHECK IF THESE ARE VALID
     uint16_t globalScheduleIndex = (uint16_t)((can_frame_id_field >> 14) & 0x3FFFU); // TODO: CHECK IF THESE ARE VALID
 
@@ -128,7 +129,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
             gttcan->isActive = true;    // Activate node (if not already)
             gttcan->localScheduleIndex = 0;
         }
-        data += GTTCAN_DEFAULT_SLOT_OFFSET; // Add 150us offset for transmission time - not exact because of stuffing bits, but gets it close
+        data |= GTTCAN_DEFAULT_SLOT_OFFSET; // Add 150us offset for transmission time - not exact because of stuffing bits, but gets it close
         // Update global time using Data && 0x3FFFFFFFFFFFFFFF
         gttcan->write_value(NETWORK_TIME_SLOT, (data & 0x3FFFFFFFFFFFFFFFULL), gttcan->context_pointer);
         gttcan->error_offset = GTTCAN_fta(gttcan);

@@ -102,9 +102,9 @@ void GTTCAN_init(gttcan_t *gttcan,
  *
  * @param gttcan The GTTCAN instance.
  * @param can_frame_id_field The ID field of the received CAN frame.
- * @param data The data of the received CAN frame.
+ * @param received_data The data of the received CAN frame.
  */
-void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_t data);
+void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, const uint64_t received_data);
 
 /**
  * @brief Transmit the next frame in the GTTCAN schedule.
