@@ -81,7 +81,9 @@ void GTTCAN_init(gttcan_t *gttcan,
             gttcan->localScheduleDataID[gttcan->localScheduleLength] = dataid;
             gttcan->localScheduleLength++;
             if (gttcan->localScheduleLength >= (uint8_t)GTTCAN_MAX_LOCAL_SCHEDULE_LENGTH)
+            {
                 break;
+            }
         }
     }
     // Reset the FTA
@@ -156,7 +158,9 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
         int32_t state_correction = gttcan->error_offset * (int32_t)slotsToNextEntry - (error - gttcan->error_offset);
         // TODO: this should never happen, so we should signal the error, so the system can reset
         while ((uint32_t)(-state_correction) > timeToNextEntry)
+        {
             timeToNextEntry += gttcan->globalScheduleLength * gttcan->slotduration;
+        }
         uint32_t corrected_time_to_next_entry = timeToNextEntry + (uint32_t)state_correction;
         gttcan->set_timer_int_callback(corrected_time_to_next_entry, gttcan->context_pointer);
     }
@@ -176,7 +180,10 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, uint64_
 void GTTCAN_transmit_next_frame(gttcan_t *gttcan)
 {
     // Check Node is active
-    if (!gttcan->isActive) return; // cppcheck-suppress misra-c2012-15.5
+    if (!gttcan->isActive)
+    {
+        return; // cppcheck-suppress misra-c2012-15.5
+    }
 
     gttcan->transmitted = true;
     // Transmit local schedule entry
@@ -195,8 +202,10 @@ void GTTCAN_transmit_next_frame(gttcan_t *gttcan)
 
     gttcan->localScheduleIndex++; // move to next entry
     // if end of local schedule
-    if(gttcan->localScheduleIndex == gttcan->localScheduleLength)
-        gttcan->localScheduleIndex = 0; //reset
+    if (gttcan->localScheduleIndex == gttcan->localScheduleLength)
+    {
+        gttcan->localScheduleIndex = 0; // reset
+    }
 
     uint16_t slotsToNextEntry = GTTCAN_get_slots_to_next_transmit(gttcan, globalScheduleIndex);
     uint32_t timeToNextEntry = slotsToNextEntry * gttcan->slotduration;
@@ -250,8 +259,10 @@ uint16_t GTTCAN_get_slots_to_next_transmit(gttcan_t *gttcan, uint16_t currentSch
  */
 uint16_t GTTCAN_get_slots_since_last_transmit(gttcan_t * gttcan, uint16_t currentScheduleIndex) 
 {
-    // cppcheck-suppress misra-c2012-15.5
-    if (!gttcan->transmitted) return currentScheduleIndex;
+    if (!gttcan->transmitted)
+    {
+        return currentScheduleIndex; // cppcheck-suppress misra-c2012-15.5
+    }
 
     const uint16_t lastTransmitIndex = (gttcan->localScheduleIndex > 0U) ? // if we are not at the first entry in our schedule
         (gttcan->localScheduleSlotID[gttcan->localScheduleIndex - 1U]) : // last transmit index was the previous entry in local schedule
@@ -319,16 +330,22 @@ int32_t GTTCAN_fta(gttcan_t *gttcan)
  */
 void GTTCAN_accumulate_error(gttcan_t *gttcan, int32_t error)
 {
-    // cppcheck-suppress misra-c2012-15.5
-    if(!gttcan->transmitted) return;
+    if(!gttcan->transmitted)
+    {
+        return; // cppcheck-suppress misra-c2012-15.5
+    }
 
     gttcan->previous_accumulator = gttcan->error_accumulator;
     gttcan->error_accumulator += error;
 
     if (error < gttcan->lower_outlier)
+    {
         gttcan->lower_outlier = error;
+    }
     if (error > gttcan->upper_outlier)
+    {
         gttcan->upper_outlier = error;
+    }
 
     gttcan->slots_accumulated++;
 }
