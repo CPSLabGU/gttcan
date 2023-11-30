@@ -186,7 +186,7 @@ void GTTCAN_accumulate_error(gttcan_t *gttcan, int32_t error);
  * @param buffer Pointer to the buffer containing the CAN frame.
  * @param length Length of the CAN frame.
  */
-uint32_t GTTCAN_calculate_stuffed_bits(const uint8_t * const buffer, const uint32_t length);
+uint32_t GTTCAN_calculate_stuffing_bits(const uint8_t * const buffer, const uint32_t length);
 
 /**
  * @brief Calculate the total number of bits in a CAN frame.
@@ -199,8 +199,32 @@ uint32_t GTTCAN_calculate_stuffed_bits(const uint8_t * const buffer, const uint3
  * @param length Length of the CAN frame.
  * @param is_extended Whether the CAN frame has an extended identifier.
  */
-// Function to calculate total bits in CAN frame
 uint32_t GTTCAN_calculate_can_frame_bits(const uint8_t * const buffer, const uint32_t length, const bool is_extended);
+
+/**
+ * @brief Compute the CRC-15 of a CAN frame.
+ *
+ * This function calculates a 15-bit CRC using the polynomial
+ * x^15 + x^14 + x^10 + x^8 + x^7 + x^4 + x^3 + 1 (0x4599),
+ * which is used in the CAN protocol.
+ *
+ * @param buffer Pointer to the buffer containing the CAN frame.
+ * @param length The length of the CAN frame.
+ */
+uint16_t GTTCAN_crc15(const uint8_t * const buffer, const uint32_t length);
+
+/**
+ * @brief Append a CRC to a CAN frame.
+ *
+ * This function appends a CRC to a CAN frame.
+ * The CAN frame is assumed to be in the format specified by ISO 11898-1.
+ * The buffer needs to have enough space to hold the CRC, i.e.,
+ * len + 2 bytes.
+ *
+ * @param frame Pointer to the buffer containing the CAN frame.
+ * @param length Length of the CAN frame.
+ */
+uint32_t GTTCAN_append_crc_to_can_frame(uint8_t * const frame, const uint32_t length);
 
 #ifdef __cplusplus
 }; // extern "C"
