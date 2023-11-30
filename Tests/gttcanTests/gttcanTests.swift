@@ -9,7 +9,7 @@ final class gttcanTests: XCTestCase {
         var callCount = 0
 
         var data: T?
-        
+
         var called: Bool {
             callCount > 0
         }
@@ -167,8 +167,24 @@ final class gttcanTests: XCTestCase {
         XCTAssertEqual(callData.data, 12)
     }
 
+    func testBitStuffing() {
+        let unstuffedData: [UInt8] = [ 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55, 0xAA, 0x55 ]
+        let fullyStuffedZeroes: [UInt8] = [ 0, 0, 0, 0, 0, 0, 0, 0 ]
+        let fullyStuffedOnes: [UInt8] = [ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF ]
+        let partiallyStuffed: [UInt8] = [ 0, 1, 2, 3, 4, 5, 6, 7 ]
+        let rawBits = 8 * UInt32(unstuffedData.count)
+        let rawUnstuffed = GTTCAN_calculate_stuffing_bits(unstuffedData, UInt32(unstuffedData.count))
+        XCTAssertEqual(rawUnstuffed, 0)
+        let fullyStuffedZBits = GTTCAN_calculate_stuffing_bits(fullyStuffedZeroes, UInt32(fullyStuffedZeroes.count))
+        let stuffBits = rawBits/5
+        XCTAssertEqual(fullyStuffedZBits, stuffBits)
+        let fullyStuffedOBits = GTTCAN_calculate_stuffing_bits(fullyStuffedOnes, UInt32(fullyStuffedOnes.count))
+        XCTAssertEqual(fullyStuffedOBits, stuffBits)
+        let partiallyStuffedBits = GTTCAN_calculate_stuffing_bits(partiallyStuffed, UInt32(partiallyStuffed.count))
+        XCTAssertEqual(partiallyStuffedBits, 8)
+    }
 }
 
 private func scheduleIndex(_ slot: Int) -> UInt32 {
-     UInt32(slot) << 14
+    UInt32(slot) << 14
 }
