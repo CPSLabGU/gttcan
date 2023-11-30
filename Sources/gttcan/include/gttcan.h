@@ -176,6 +176,32 @@ int32_t GTTCAN_fta(gttcan_t *gttcan);
  */
 void GTTCAN_accumulate_error(gttcan_t *gttcan, int32_t error);
 
+/**
+ * @brief Calculate the number of stuffed bits in a CAN frame.
+ *
+ * This function calculates the number of stuffed bits in a CAN frame.
+ * The CAN frame is assumed to be in the format specified by ISO 11898-1.
+ * The CRC delimiter and ACK slot are assumed to be present.
+ *
+ * @param buffer Pointer to the buffer containing the CAN frame.
+ * @param length Length of the CAN frame.
+ */
+uint32_t GTTCAN_calculate_stuffed_bits(const uint8_t * const buffer, const uint32_t length);
+
+/**
+ * @brief Calculate the total number of bits in a CAN frame.
+ *
+ * This function calculates the number of bits in a CAN frame on the bus.
+ * The CAN frame is assumed to be in the format specified by ISO 11898-1.
+ * The CRC delimiter and ACK slot are assumed to be present.
+ *
+ * @param buffer Pointer to the buffer containing the CAN frame.
+ * @param length Length of the CAN frame.
+ * @param is_extended Whether the CAN frame has an extended identifier.
+ */
+// Function to calculate total bits in CAN frame
+uint32_t GTTCAN_calculate_can_frame_bits(const uint8_t * const buffer, const uint32_t length, const bool is_extended);
+
 #ifdef __cplusplus
 }; // extern "C"
 #endif
