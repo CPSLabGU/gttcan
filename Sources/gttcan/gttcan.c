@@ -111,7 +111,7 @@ void GTTCAN_init(gttcan_t *gttcan,
  */
 void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, const uint64_t received_data)
 {
-    gttcan->action_time -= (uint32_t)gttcan->state_correction;
+    //gttcan->action_time -= (uint32_t)gttcan->state_correction;
     uint64_t data = received_data;
     uint16_t slotID = (uint16_t)(can_frame_id_field & 0x3FFFU); // TODO: CHECK IF THESE ARE VALID
     uint16_t globalScheduleIndex = (uint16_t)((can_frame_id_field >> 14) & 0x3FFFU); // TODO: CHECK IF THESE ARE VALID
@@ -157,6 +157,7 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, const u
         //gttcan->slotduration -= gttcan->error_offset; TODO: add this back in
         uint32_t slotsToNextEntry = GTTCAN_get_slots_to_next_transmit(gttcan, globalScheduleIndex);
         uint32_t timeToNextEntry = slotsToNextEntry * gttcan->slotduration;
+        /*
         int32_t state_correction = gttcan->error_offset * (int32_t)slotsToNextEntry - (error - gttcan->error_offset);
         // TODO: this should never happen, so we should signal the error, so the system can reset
         while ((uint32_t)(-state_correction) > timeToNextEntry)
@@ -164,7 +165,8 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, const u
             timeToNextEntry += gttcan->globalScheduleLength * gttcan->slotduration;
         }
         uint32_t corrected_time_to_next_entry = timeToNextEntry + (uint32_t)state_correction;
-        gttcan->set_timer_int_callback(corrected_time_to_next_entry, gttcan->context_pointer);
+        */
+        gttcan->set_timer_int_callback(timeToNextEntry, gttcan->context_pointer);
     }
 }
 
