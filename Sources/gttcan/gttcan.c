@@ -94,9 +94,16 @@ void GTTCAN_init(gttcan_t *gttcan,
 /**
  * @brief Process a received CAN frame.
  *
- * This function processes a received CAN frame, updates the global time,
- * and handles the data based on the slot ID. It also calculates the time
- * to the next entry and sets a timer interrupt for that time.
+ * This function should be called whenever a CAN frame is received.
+ * For most use cases, this would be done via an interrupt, though it
+ * could be called in a polling loop. Note that the time between the
+ * frame being received and the polling mechanism detecting there is a
+ * frame waiting to be processed will introduce timing error.
+ * 
+ * This function processes a received CAN frame, updates the global time
+ * in the case of a reference frame, and handles the data based on the 
+ * slot ID. It also calculates the time to the next entry and sets a 
+ * timer interrupt for that time.
  *
  * When a reference frame is received, the node is activated,
  * and the local schedule is reset.
@@ -173,11 +180,11 @@ void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, const u
 /**
  * @brief Transmit the next frame in the GTTCAN schedule.
  *
- * This function checks if the node is active, and if so,
- * transmits the next frame in the local schedule.
- * It also calculates the time to the next entry and
- * runs the callback function to set a timer interrupt
- * for that point in time.
+ * This funtion should be called from the timer interrupt.
+ * It checks if the node is active, and if so, transmits
+ * the next frame in the local schedule. It also calculates 
+ * the time to the next entry and runs the callback function 
+ * to set a new timer interrupt for that point in time.
  *
  * @param gttcan The GTTCAN instance.
  */
@@ -224,7 +231,8 @@ void GTTCAN_transmit_next_frame(gttcan_t *gttcan) // cppcheck-suppress misra-c20
  *
  * This function should only ever be called on master.
  * It resets the node to the start of the schedule,
- * activates the node, and sends the first message in the schedule.
+ * activates the node, and sends the first message in the 
+ * schedule (a reference frame).
  *
  * @param gttcan The GTTCAN instance.
  */
