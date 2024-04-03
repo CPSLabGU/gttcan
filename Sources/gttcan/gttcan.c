@@ -116,8 +116,9 @@ void GTTCAN_init(gttcan_t *gttcan,
  * @param can_frame_id_field The ID field of the received CAN frame.
  * @param received_data The data of the received CAN frame.
  */
-void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t can_frame_id_field, const uint64_t received_data)
+void GTTCAN_process_frame(gttcan_t *gttcan, uint32_t current_time, uint32_t can_frame_id_field, const uint64_t received_data)
 {
+    gttcan->action_time = current_time;
     //gttcan->action_time -= (uint32_t)gttcan->state_correction;
     uint64_t data = received_data;
     uint16_t slotID = (uint16_t)(can_frame_id_field & 0x3FFFU); // TODO: CHECK IF THESE ARE VALID
@@ -195,7 +196,7 @@ void GTTCAN_transmit_next_frame(gttcan_t *gttcan) // cppcheck-suppress misra-c20
     {
         return; // cppcheck-suppress misra-c2012-15.5
     }
-
+    gttcan->action_time = 0;
     gttcan->transmitted = true;
     // Transmit local schedule entry
     uint16_t globalScheduleIndex = gttcan->localScheduleSlotID[gttcan->localScheduleIndex];
